@@ -82,6 +82,18 @@ textarea{min-height:60px}
 .fig .pc{position:absolute;overflow:hidden;background:#ddd}
 .fig .pc img{width:100%;height:100%;object-fit:cover;display:block}
 .fig .pc.noimg{display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;text-align:center}
+.crop{position:fixed;inset:0;z-index:40;background:#111;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom))}
+.crop .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;padding:14px}
+.crop .wrap{position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
+.crop .wrap img{display:block;max-width:100%;max-height:100%;pointer-events:none}
+.crop .box{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.55);touch-action:none}
+.crop .box:after{content:"";position:absolute;inset:0;background:linear-gradient(#fff6,#fff6) 33.3% 0/1px 100% no-repeat,linear-gradient(#fff6,#fff6) 66.6% 0/1px 100% no-repeat,linear-gradient(#fff6,#fff6) 0 33.3%/100% 1px no-repeat,linear-gradient(#fff6,#fff6) 0 66.6%/100% 1px no-repeat;pointer-events:none}
+.crop .h{position:absolute;width:26px;height:26px;background:#fff;border-radius:50%;margin:-13px 0 0 -13px;touch-action:none;z-index:2}
+.crop .bar{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.crop .bar .chip{background:#222;color:#eee;border-color:#444}
+.crop .bar .chip.on{background:#fff;color:#111}
+.crop .act{display:flex;gap:10px;margin-top:12px}
+.crop .act .btn{flex:1}
 .hide{display:none!important}
 </style>
 </head>
@@ -177,6 +189,55 @@ function shrink(file,max,q){return new Promise((res,rej)=>{const img=new Image()
   img.onerror=()=>{URL.revokeObjectURL(u);rej();};img.src=u;});}
 const blobToData=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b);});
 
+
+/* ===== 写真の切り抜き ===== */
+function cropImage(src){return new Promise(resolve=>{
+  const url=src instanceof Blob?URL.createObjectURL(src):src;
+  const ov=document.createElement("div");ov.className="crop";
+  ov.innerHTML=`<div style="color:#fff;text-align:center;font-size:14px;margin-bottom:8px">枠を動かして、服の部分だけを囲む</div>
+    <div class="stage"><div class="wrap"><img alt=""><div class="box"></div>
+      <div class="h" data-h="nw"></div><div class="h" data-h="ne"></div><div class="h" data-h="sw"></div><div class="h" data-h="se"></div></div></div>
+    <div class="bar"><span class="chip on" data-r="0">自由</span><span class="chip" data-r="1">正方形</span><span class="chip" data-r="0.75">縦長 3:4</span><span class="chip" data-r="all">全体</span></div>
+    <div class="act"><button class="btn sec" id="cc">やめる</button><button class="btn acc" id="co">切り抜く</button></div>`;
+  document.body.appendChild(ov);
+  const img=ov.querySelector("img"),wrap=ov.querySelector(".wrap"),box=ov.querySelector(".box"),hs=[...ov.querySelectorAll(".h")];
+  let W=0,H=0,ratio=0,r={x:0,y:0,w:0,h:0};const MIN=40;
+  function draw(){box.style.left=r.x+"px";box.style.top=r.y+"px";box.style.width=r.w+"px";box.style.height=r.h+"px";
+    const pos={nw:[r.x,r.y],ne:[r.x+r.w,r.y],sw:[r.x,r.y+r.h],se:[r.x+r.w,r.y+r.h]};
+    hs.forEach(h=>{const p=pos[h.dataset.h];h.style.left=p[0]+"px";h.style.top=p[1]+"px";});}
+  function fit(){const st=ov.querySelector(".stage").getBoundingClientRect();
+    const sc=Math.min(st.width/img.naturalWidth,st.height/img.naturalHeight);W=Math.floor(img.naturalWidth*sc);H=Math.floor(img.naturalHeight*sc);
+    img.style.width=W+"px";img.style.height=H+"px";}
+  function setRatio(v){ratio=v;let w=W*0.8,h=H*0.8;
+    if(v==="all"){ratio=0;r={x:0,y:0,w:W,h:H};draw();return;}
+    if(ratio){if(w/h>ratio)w=h*ratio;else h=w/ratio;}
+    r={x:(W-w)/2,y:(H-h)/2,w,h};draw();}
+  img.onload=()=>{fit();setRatio(0);};img.src=url;
+  ov.querySelector(".bar").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;ov.querySelectorAll(".bar .chip").forEach(x=>x.classList.remove("on"));c.classList.add("on");
+    setRatio(c.dataset.r==="all"?"all":Number(c.dataset.r));};
+  let drag=null;
+  function down(e,mode){e.preventDefault();e.stopPropagation();drag={mode,sx:e.clientX,sy:e.clientY,r0:{...r}};
+    (e.target).setPointerCapture&&e.target.setPointerCapture(e.pointerId);}
+  box.addEventListener("pointerdown",e=>down(e,"move"));hs.forEach(h=>h.addEventListener("pointerdown",e=>down(e,h.dataset.h)));
+  window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
+  function up(){drag=null;}
+  function move(e){if(!drag)return;e.preventDefault();const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy,o=drag.r0;let n={...o};
+    if(drag.mode==="move"){n.x=Math.min(Math.max(0,o.x+dx),W-o.w);n.y=Math.min(Math.max(0,o.y+dy),H-o.h);r=n;draw();return;}
+    const m=drag.mode;let x1=o.x,y1=o.y,x2=o.x+o.w,y2=o.y+o.h;
+    if(m.includes("w"))x1=Math.min(Math.max(0,o.x+dx),x2-MIN);if(m.includes("e"))x2=Math.max(Math.min(W,x2+dx),x1+MIN);
+    if(m.includes("n"))y1=Math.min(Math.max(0,o.y+dy),y2-MIN);if(m.includes("s"))y2=Math.max(Math.min(H,y2+dy),y1+MIN);
+    if(ratio){let w=x2-x1,h=y2-y1;if(w/h>ratio)w=h*ratio;else h=w/ratio;
+      if(m.includes("w"))x1=x2-w;else x2=x1+w;if(m.includes("n"))y1=y2-h;else y2=y1+h;
+      if(x1<0||y1<0||x2>W||y2>H)return;}
+    r={x:x1,y:y1,w:x2-x1,h:y2-y1};draw();}
+  function close(v){window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);
+    ov.remove();if(src instanceof Blob)URL.revokeObjectURL(url);resolve(v);}
+  ov.querySelector("#cc").onclick=()=>close(null);
+  ov.querySelector("#co").onclick=()=>{const k=img.naturalWidth/W;const sx=r.x*k,sy=r.y*k,sw=r.w*k,sh=r.h*k;
+    const sc=Math.min(1,1000/Math.max(sw,sh));const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(sh*sc);
+    c.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);c.toBlob(b=>close(b),"image/jpeg",.85);};
+});}
+
 /* ===== 描画 ===== */
 function render(){
   const all=Object.values(S.items);
@@ -242,6 +303,7 @@ function openForm(edit){
   const o=openSheet(`
     <h2>${edit?"服を編集":"服を登録"}</h2>
     <div class="photoPick" id="pp">${preview?`<img src="${esc(preview)}">`:"<div style='font-size:30px'>📷</div><div>タップして写真を撮る・選ぶ</div>"}</div>
+    <div class="row" style="margin-top:8px;justify-content:space-between"><span class="muted">写真をタップすると撮り直せる</span><button class="btn sec ${preview?"":"hide"}" id="recrop" style="padding:7px 12px;font-size:13px">切り抜き直す</button></div>
     <label class="f">名前（任意）</label><input type="text" id="fName" value="${esc(it.name||"")}" placeholder="例：白のオックスフォードシャツ">
     <label class="f">カテゴリ</label>${chipGroup("cat",CATS,it.cat)}
     <label class="f">メインの色</label>${chipGroup("colorMain",COLORS.map(c=>c[0]),it.colorMain)}
@@ -263,7 +325,9 @@ function openForm(edit){
     bindChips(lenBox);}
   bindChips(o,g=>{if(g==="cat")lenUI();});lenUI();
   o.querySelector("#pp").onclick=()=>{const fi=$("#fileIn");fi.value="";fi.onchange=async()=>{const f=fi.files[0];if(!f)return;
-    try{newBlob=await shrink(f,1000,.82);const u=URL.createObjectURL(newBlob);o.querySelector("#pp").innerHTML=`<img src="${u}">`;}catch(e){toast("画像を読み込めませんでした");}};fi.click();};
+    try{const pre=await shrink(f,2000,.9);const c=await cropImage(pre);if(!c)return;newBlob=c;showPrev();}catch(e){toast("画像を読み込めませんでした");}};fi.click();};
+  function showPrev(){const u=URL.createObjectURL(newBlob);o.querySelector("#pp").innerHTML=`<img src="${u}">`;o.querySelector("#recrop").classList.remove("hide");}
+  o.querySelector("#recrop").onclick=async()=>{try{const base=newBlob||await (await fetch(imgSrc(it))).blob();const c=await cropImage(base);if(c){newBlob=c;showPrev();}}catch(e){toast("切り抜けませんでした");}};
   o.querySelector("#cancel").onclick=()=>o.remove();
   o.querySelector("#save").onclick=async e=>{
     const b=e.target;b.disabled=true;b.textContent="保存中…";
