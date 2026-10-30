@@ -85,7 +85,7 @@ textarea{min-height:60px}
 .crop{position:fixed;inset:0;z-index:40;background:#111;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom))}
 .crop .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;padding:14px}
 .crop .wrap{position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
-.crop .wrap img{display:block;max-width:100%;max-height:100%;pointer-events:none}
+.crop .wrap img{display:block;max-width:none;max-height:none;pointer-events:none}
 .crop .box{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.55);touch-action:none}
 .crop .box:after{content:"";position:absolute;inset:0;background:linear-gradient(#fff6,#fff6) 33.3% 0/1px 100% no-repeat,linear-gradient(#fff6,#fff6) 66.6% 0/1px 100% no-repeat,linear-gradient(#fff6,#fff6) 0 33.3%/100% 1px no-repeat,linear-gradient(#fff6,#fff6) 0 66.6%/100% 1px no-repeat;pointer-events:none}
 .crop .h{position:absolute;width:26px;height:26px;background:#fff;border-radius:50%;margin:-13px 0 0 -13px;touch-action:none;z-index:2}
@@ -122,20 +122,22 @@ textarea{min-height:60px}
 
 <script>
 /* ===== 定数 ===== */
-const CATS=["トップス","ボトムス","アウター","靴","小物"];
+const CATS=["トップス","ボトムス","アウター","靴","ベルト","帽子","靴下","バッグ","アクセサリー"];
+const LAYERS=["1枚でも着る","重ね着用"];const SHEERS=["なし","あり"];
+const BELT_TYPES=["レザー","布","メッシュ","その他"];const BELT_W=["細い","普通","太い"];const SOCK_LEN=["くるぶし","クルー","ハイ"];
 const COLORS=[["黒","#1a1a1a"],["白","#ffffff"],["グレー","#9a9a9a"],["ネイビー","#1f2a48"],["ベージュ","#d8c6a5"],["ブラウン","#6b4a2f"],["カーキ","#7a7550"],["オリーブ","#5b6236"],["デニム","#4a6688"],["青","#2d5fbf"],["水色","#9cc7e6"],["緑","#2f7a4a"],["赤","#b83228"],["ピンク","#e7a3b5"],["黄","#e6c33d"],["オレンジ","#e07b32"],["紫","#6b4a8a"],["柄・マルチ","linear-gradient(135deg,#e07b32,#2d5fbf,#2f7a4a)"]];
 const SEASONS=["春","夏","秋","冬"];
 const SILS=["タイト","レギュラー","ゆったり","ワイド"];
 const TOP_LEN=["短め","普通","長め"];
 const BOT_LEN=["ショート","アンクル","フル"];
 const TASTES=["きれいめ","カジュアル","ストリート","モード","アウトドア","どれでも"];
-const DEFAULT_RULES={basic:["黒","白","グレー","ネイビー","ベージュ","デニム"],maxAccent:1,noBothLoose:true,outerLonger:true,tasteMatch:true,preferLowWear:true};
+const DEFAULT_RULES={basic:["黒","白","グレー","ネイビー","ベージュ","デニム"],maxAccent:1,noBothLoose:true,outerLonger:true,tasteMatch:true,preferLowWear:true,beltMatchShoes:false,shortsShowSocks:true,innerHemShow:false};
 const LOOSE=s=>s==="ゆったり"||s==="ワイド";
 const SLIM=s=>s==="タイト"||s==="レギュラー";
 
 /* ===== 状態 ===== */
 const S={items:{},rules:{...DEFAULT_RULES},log:[],mode:"local",uid:null,db:null,assets:null,view:"closet",filter:"すべて",sort:"new",
-  sug:{fig:true,mode:"rule",season:curSeason(),outer:["秋","冬"].includes(curSeason()),anchor:"",result:null}};
+  sug:{fig:true,layer:false,hat:false,belt:false,socks:false,mode:"rule",season:curSeason(),outer:["秋","冬"].includes(curSeason()),anchor:"",result:null}};
 function curSeason(){const m=new Date().getMonth()+1;return m>=3&&m<=5?"春":m>=6&&m<=8?"夏":m>=9&&m<=11?"秋":"冬";}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -173,7 +175,8 @@ async function init(){
   try{DB=await idbOpen();}catch(e){banner("このブラウザでは保存が使えません。プライベートブラウズを解除して開き直してください。");return;}
   const [items,photos,rules,log]=await Promise.all([idbAll("items"),idbAll("photos"),idbGet("meta","rules"),idbGet("meta","log")]);
   for(const k in photos)PHOTO_URL[k]=URL.createObjectURL(photos[k]);
-  S.items=items||{};S.rules={...DEFAULT_RULES,...(rules||{})};S.log=log||[];
+  S.items=items||{};for(const id in S.items){if(S.items[id].cat==="小物"){S.items[id].cat="アクセサリー";idbPut("items",id,S.items[id]).catch(()=>{});}}
+  S.rules={...DEFAULT_RULES,...(rules||{})};S.log=log||[];
   render();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
   const standalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;
@@ -205,9 +208,11 @@ function cropImage(src){return new Promise(resolve=>{
   function draw(){box.style.left=r.x+"px";box.style.top=r.y+"px";box.style.width=r.w+"px";box.style.height=r.h+"px";
     const pos={nw:[r.x,r.y],ne:[r.x+r.w,r.y],sw:[r.x,r.y+r.h],se:[r.x+r.w,r.y+r.h]};
     hs.forEach(h=>{const p=pos[h.dataset.h];h.style.left=p[0]+"px";h.style.top=p[1]+"px";});}
-  function fit(){const st=ov.querySelector(".stage").getBoundingClientRect();
-    const sc=Math.min(st.width/img.naturalWidth,st.height/img.naturalHeight);W=Math.floor(img.naturalWidth*sc);H=Math.floor(img.naturalHeight*sc);
-    img.style.width=W+"px";img.style.height=H+"px";}
+  function fit(){const stEl=ov.querySelector(".stage");const cs=getComputedStyle(stEl);
+    const aw=stEl.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),ah=stEl.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+    const sc=Math.min(aw/img.naturalWidth,ah/img.naturalHeight);
+    img.style.width=Math.floor(img.naturalWidth*sc)+"px";img.style.height=Math.floor(img.naturalHeight*sc)+"px";
+    W=img.clientWidth;H=img.clientHeight;}
   function setRatio(v){ratio=v;let w=W*0.8,h=H*0.8;
     if(v==="all"){ratio=0;r={x:0,y:0,w:W,h:H};draw();return;}
     if(ratio){if(w/h>ratio)w=h*ratio;else h=w/ratio;}
@@ -233,7 +238,7 @@ function cropImage(src){return new Promise(resolve=>{
   function close(v){window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);
     ov.remove();if(src instanceof Blob)URL.revokeObjectURL(url);resolve(v);}
   ov.querySelector("#cc").onclick=()=>close(null);
-  ov.querySelector("#co").onclick=()=>{const k=img.naturalWidth/W;const sx=r.x*k,sy=r.y*k,sw=r.w*k,sh=r.h*k;
+  ov.querySelector("#co").onclick=()=>{const k=img.naturalWidth/img.getBoundingClientRect().width;const sx=r.x*k,sy=r.y*k,sw=r.w*k,sh=r.h*k;
     const sc=Math.min(1,1000/Math.max(sw,sh));const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(sh*sc);
     c.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);c.toBlob(b=>close(b),"image/jpeg",.85);};
 });}
@@ -291,7 +296,7 @@ function chipGroup(name,opts,sel,multi){
 function readGroup(root,name){const g=root.querySelector(`[data-g="${name}"]`);if(!g)return null;
   const on=[...g.querySelectorAll(".chip.on")].map(c=>c.dataset.o);return g.dataset.multi==="1"?on:(on[0]||"");}
 function bindChips(root,onChange){root.querySelectorAll("[data-g]").forEach(g=>g.onclick=e=>{const c=e.target.closest(".chip");if(!c)return;
-  if(g.dataset.multi==="1")c.classList.toggle("on");else{const was=c.classList.contains("on");g.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));if(!was)c.classList.add("on");}
+  if(g.dataset.multi==="1")c.classList.toggle("on");else{const was=c.classList.contains("on");if(was&&g.dataset.g!=="colorSub")return;g.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));if(!was)c.classList.add("on");}
   onChange&&onChange(g.dataset.g);});}
 
 function openSheet(html){const o=document.createElement("div");o.className="overlay";o.innerHTML=`<div class="sheet">${html}</div>`;
@@ -309,20 +314,24 @@ function openForm(edit){
     <label class="f">メインの色</label>${chipGroup("colorMain",COLORS.map(c=>c[0]),it.colorMain)}
     <label class="f">サブの色（任意）</label>${chipGroup("colorSub",COLORS.map(c=>c[0]),it.colorSub)}
     <label class="f">季節（複数可）</label>${chipGroup("seasons",SEASONS,it.seasons,true)}
-    <div id="silBox"><label class="f">シルエット</label>${chipGroup("silhouette",SILS,it.silhouette)}</div>
-    <div id="lenBox"></div>
+    <div id="extraBox"></div>
     <label class="f">テイスト</label>${chipGroup("taste",TASTES,it.taste)}
     <label class="f">ブランド（任意）</label><input type="text" id="fBrand" value="${esc(it.brand||"")}">
     <div class="row" style="gap:10px"><div style="flex:1;min-width:130px"><label class="f">購入日（任意）</label><input type="date" id="fDate" value="${esc(it.date||"")}"></div>
     <div style="flex:1;min-width:110px"><label class="f">価格（円・任意）</label><input type="number" id="fPrice" inputmode="numeric" value="${esc(it.price||"")}"></div></div>
     <label class="f">メモ（任意）</label><textarea id="fMemo">${esc(it.memo||"")}</textarea>
     <div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn sec" id="cancel">やめる</button><button class="btn acc" id="save">保存</button></div>`);
-  const lenBox=o.querySelector("#lenBox"),silBox=o.querySelector("#silBox");
-  function lenUI(){const cat=readGroup(o,"cat");silBox.classList.toggle("hide",cat==="靴"||cat==="小物");
-    if(cat==="トップス"||cat==="アウター"){const v=TOP_LEN.includes(it.length)?it.length:"普通";lenBox.innerHTML=`<label class="f">着丈</label>${chipGroup("length",TOP_LEN,v)}`;}
-    else if(cat==="ボトムス"){const v=BOT_LEN.includes(it.length)?it.length:"フル";lenBox.innerHTML=`<label class="f">丈</label>${chipGroup("length",BOT_LEN,v)}`;}
-    else lenBox.innerHTML="";
-    bindChips(lenBox);}
+  const ex=o.querySelector("#extraBox");
+  function lenUI(){const cat=readGroup(o,"cat");let h="";
+    const f=(lab,g,opts,v)=>`<label class="f">${lab}</label>${chipGroup(g,opts,v)}`;
+    if(["トップス","ボトムス","アウター"].includes(cat))h+=f("シルエット","silhouette",SILS,it.silhouette||"レギュラー");
+    if(cat==="トップス"||cat==="アウター")h+=f("着丈","length",TOP_LEN,TOP_LEN.includes(it.length)?it.length:"普通");
+    if(cat==="ボトムス")h+=f("丈（ハーフパンツはショート）","length",BOT_LEN,BOT_LEN.includes(it.length)?it.length:"フル");
+    if(cat==="トップス")h+=f("重ね方","layer",LAYERS,it.layer||"1枚でも着る")+`<div class="muted" style="margin-top:4px">重ね着用：シャツの羽織り、ベスト、カーディガンなど、下に1枚着る服</div>`;
+    if(cat==="トップス"||cat==="アウター")h+=f("透け感（メッシュ・シアーなど）","sheer",SHEERS,it.sheer||"なし");
+    if(cat==="ベルト")h+=f("種類","beltType",BELT_TYPES,it.beltType||"レザー")+f("太さ","beltWidth",BELT_W,it.beltWidth||"普通");
+    if(cat==="靴下")h+=f("丈","sockLen",SOCK_LEN,it.sockLen||"クルー");
+    ex.innerHTML=h;bindChips(ex);}
   bindChips(o,g=>{if(g==="cat")lenUI();});lenUI();
   o.querySelector("#pp").onclick=()=>{const fi=$("#fileIn");fi.value="";fi.onchange=async()=>{const f=fi.files[0];if(!f)return;
     try{const pre=await shrink(f,2000,.9);const c=await cropImage(pre);if(!c)return;newBlob=c;showPrev();}catch(e){toast("画像を読み込めませんでした");}};fi.click();};
@@ -334,7 +343,8 @@ function openForm(edit){
     const cat=readGroup(o,"cat")||"トップス";
     const out={...it,id:it.id||rid(),created:it.created||Date.now(),wear:it.wear||0,lastWorn:it.lastWorn||"",
       name:o.querySelector("#fName").value.trim(),cat,colorMain:readGroup(o,"colorMain"),colorSub:readGroup(o,"colorSub"),
-      seasons:readGroup(o,"seasons"),silhouette:(cat==="靴"||cat==="小物")?"":readGroup(o,"silhouette"),length:readGroup(o,"length")||"",taste:readGroup(o,"taste"),
+      seasons:readGroup(o,"seasons"),silhouette:readGroup(o,"silhouette")||"",length:readGroup(o,"length")||"",taste:readGroup(o,"taste"),
+      layer:readGroup(o,"layer")||"",sheer:readGroup(o,"sheer")||"",beltType:readGroup(o,"beltType")||"",beltWidth:readGroup(o,"beltWidth")||"",sockLen:readGroup(o,"sockLen")||"",
       brand:o.querySelector("#fBrand").value.trim(),date:o.querySelector("#fDate").value,price:o.querySelector("#fPrice").value,memo:o.querySelector("#fMemo").value.trim()};
     if(newBlob){
       try{
@@ -382,7 +392,7 @@ function importData(){const fi=$("#importIn");fi.value="";fi.onchange=async()=>{
 function openDetail(id){
   const it=S.items[id];if(!it)return;
   const rows=[["カテゴリ",it.cat],["色",[sw(it.colorMain),sw(it.colorSub)].filter(Boolean).join(" ／ "),true],["季節",(it.seasons||[]).join("・")],
-    ["シルエット",it.silhouette],[it.cat==="ボトムス"?"丈":"着丈",it.length],["テイスト",it.taste],["ブランド",it.brand],["購入日",it.date],
+    ["シルエット",it.silhouette],[it.cat==="ボトムス"?"丈":"着丈",it.length],["重ね方",it.layer],["透け感",it.sheer==="あり"?"あり":""],["種類",it.beltType],["太さ",it.beltWidth],["靴下の丈",it.sockLen],["テイスト",it.taste],["ブランド",it.brand],["購入日",it.date],
     ["価格",it.price?Number(it.price).toLocaleString()+"円":""],["着用回数",(it.wear||0)+"回"],["最後に着た日",it.lastWorn||"まだ着ていない"],
     ["1回あたり",it.price&&it.wear?Math.round(it.price/it.wear).toLocaleString()+"円":""],["メモ",it.memo]].filter(r=>r[1]);
   const o=openSheet(`
@@ -417,13 +427,14 @@ function weight(it){if(!S.rules.preferLowWear)return 1;return (1/(1+(it.wear||0)
 function pickWeighted(arr){const w=arr.map(weight);const t=w.reduce((a,b)=>a+b,0);let r=Math.random()*t;for(let i=0;i<arr.length;i++){r-=w[i];if(r<=0)return arr[i];}return arr[arr.length-1];}
 const pickRand=a=>a[Math.floor(Math.random()*a.length)];
 
-function checkPair(chosen,cand){
+const MAINW=["トップス","インナー","ボトムス","アウター","靴","帽子"];
+function checkPair(chosen,cand,slot){
   const R=S.rules,all=[...Object.values(chosen),cand];
   if(accentColors(all).length>R.maxAccent)return "差し色が多い";
-  const top=cand.cat==="トップス"?cand:chosen["トップス"],bot=cand.cat==="ボトムス"?cand:chosen["ボトムス"],out=cand.cat==="アウター"?cand:chosen["アウター"];
+  const top=slot==="トップス"?cand:chosen["トップス"],bot=slot==="ボトムス"?cand:chosen["ボトムス"],out=slot==="アウター"?cand:chosen["アウター"];
   if(R.noBothLoose&&top&&bot&&LOOSE(top.silhouette)&&LOOSE(bot.silhouette))return "上下とも太い";
   if(R.outerLonger&&top&&out&&lenIdx(out.length)>=0&&lenIdx(top.length)>=0&&lenIdx(out.length)<lenIdx(top.length))return "アウターがトップスより短い";
-  if(R.tasteMatch&&cand.cat!=="小物"){for(const c of Object.values(chosen)){if(c.cat==="小物")continue;
+  if(R.tasteMatch&&MAINW.includes(slot)){for(const k in chosen){if(!MAINW.includes(k))continue;const c=chosen[k];
     if(c.taste&&cand.taste&&c.taste!=="どれでも"&&cand.taste!=="どれでも"&&c.taste!==cand.taste)return "テイストが違う";}}
   return null;
 }
@@ -432,27 +443,54 @@ function lineName(o){const t=o["トップス"],b=o["ボトムス"];if(!t||!b)ret
   if(LOOSE(t.silhouette)&&SLIM(b.silhouette))return "Yライン";
   if(SLIM(t.silhouette)&&SLIM(b.silhouette))return "Iライン";
   return "";}
+const ORDER=["帽子","アウター","トップス","インナー","ベルト","ボトムス","靴下","靴"];
+const needsInner=t=>t&&(t.layer==="重ね着用"||t.sheer==="あり");
 
 function generate(){
-  const sg=S.sug,season=sg.season;
-  const pool=Object.values(S.items).filter(i=>!i.seasons||!i.seasons.length||i.seasons.includes(season));
+  const sg=S.sug,R=S.rules,rule=sg.mode==="rule",season=sg.season;
+  const pool=Object.values(S.items).filter(i=>i.cat&&(!i.seasons||!i.seasons.length||i.seasons.includes(season)));
   const by=c=>pool.filter(i=>i.cat===c);
-  const need=["トップス","ボトムス"];const opt=["靴"];if(sg.outer)opt.unshift("アウター");
-  for(const c of need)if(!by(c).length)return {err:`${season}に着られる${c}が登録されていない`};
-  const cats=[...need,...opt.filter(c=>by(c).length)];
-  if(sg.mode==="random"){const o={};cats.forEach(c=>o[c]=pickRand(by(c)));return {outfit:o,cats};}
-  // ルールモード
-  let anchor=sg.anchor?S.items[sg.anchor]:null;
+  const tops=by("トップス"),inners=tops.filter(t=>!needsInner(t));
+  if(!tops.length)return {err:`${season}に着られるトップスが登録されていない`};
+  if(!by("ボトムス").length)return {err:`${season}に着られるボトムスが登録されていない`};
+  if(sg.layer&&!tops.some(needsInner))return {err:"重ね着用か透けるトップスが登録されていない。服の編集で「重ね方」か「透け感」を設定する"};
+  const pick=a=>rule?pickWeighted(a):pickRand(a);
   const fails={};
+  const fit=(o,slot,arr)=>!rule?arr:arr.filter(x=>{const r=checkPair(o,x,slot);if(r)fails[r]=(fails[r]||0)+1;return !r;});
+  const anchor=rule&&sg.anchor?S.items[sg.anchor]:null;
   for(let t=0;t<300;t++){
-    const o={};let a=anchor;
-    if(!a){const base=pool.filter(i=>cats.includes(i.cat));a=pickWeighted(base);}
-    o[a.cat]=a;let ok=true;
-    for(const c of cats){if(o[c])continue;
-      const cands=by(c).filter(x=>{const r=checkPair(o,x);if(r){fails[r]=(fails[r]||0)+1;}return !r;});
-      if(!cands.length){if(opt.includes(c))continue;ok=false;break;}
-      o[c]=pickWeighted(cands);}
-    if(ok)return {outfit:o,cats,anchor:a.id};
+    const o={},notes=[];let sockMode="",beltMode="";
+    if(anchor)o[anchor.cat]=anchor;
+    // メインのトップス
+    if(!o["トップス"]){let c=tops.filter(x=>sg.layer?needsInner(x):x.layer!=="重ね着用");c=fit(o,"トップス",c);if(!c.length){fails["トップスが合わない"]=(fails["トップスが合わない"]||0)+1;continue;}o["トップス"]=pick(c);}
+    const main=o["トップス"];
+    if(needsInner(main)){
+      let c=inners.filter(x=>x.id!==main.id);
+      if(rule&&R.innerHemShow)c=c.filter(x=>lenIdx(x.length)>=lenIdx(main.length));
+      c=fit(o,"インナー",c);if(!c.length){fails["合うインナーがない"]=(fails["合うインナーがない"]||0)+1;continue;}o["インナー"]=pick(c);}
+    if(!o["ボトムス"]){const c=fit(o,"ボトムス",by("ボトムス"));if(!c.length)continue;o["ボトムス"]=pick(c);}
+    if(sg.outer&&!o["アウター"]&&by("アウター").length){const c=fit(o,"アウター",by("アウター"));if(c.length)o["アウター"]=pick(c);}
+    if(!o["靴"]&&by("靴").length){const c=fit(o,"靴",by("靴"));if(c.length)o["靴"]=pick(c);}
+    if(sg.belt&&by("ベルト").length){const c=by("ベルト");const ref=o["靴"]&&o["靴"].colorMain;
+      const modes=!rule?["どれでも"]:(R.beltMatchShoes?["合わせる"]:(Math.random()<.5?["合わせる","差し色"]:["差し色","合わせる"]));
+      for(const m of modes){let cc=m==="どれでも"?c:c.filter(x=>m==="合わせる"?(ref&&x.colorMain===ref):!isBasic(x.colorMain));cc=fit(o,"ベルト",cc);
+        if(!cc.length&&m==="合わせる")cc=fit(o,"ベルト",c.filter(x=>isBasic(x.colorMain)));
+        if(cc.length){o["ベルト"]=pick(cc);beltMode=m;break;}}
+      if(!o["ベルト"])notes.push("合うベルトがない");}
+    if(sg.hat&&by("帽子").length){const c=fit(o,"帽子",by("帽子"));if(c.length)o["帽子"]=pick(c);else notes.push("合う帽子がない");}
+    const bl=o["ボトムス"].length;
+    if(sg.socks&&by("靴下").length){
+      if(bl==="ショート"||bl==="アンクル"){
+        let c=by("靴下");if(bl==="ショート"&&R.shortsShowSocks)c=c.filter(x=>x.sockLen==="クルー"||x.sockLen==="ハイ");
+        const ref=[o["靴"]&&o["靴"].colorMain,o["ボトムス"].colorMain].filter(Boolean);
+        const modes=Math.random()<.5?["合わせる","差し色"]:["差し色","合わせる"];
+        for(const m of modes){let cc=c.filter(x=>m==="合わせる"?ref.includes(x.colorMain):!isBasic(x.colorMain));cc=fit(o,"靴下",cc);
+          if(!cc.length&&m==="合わせる")cc=fit(o,"靴下",c.filter(x=>isBasic(x.colorMain)));
+          if(cc.length){o["靴下"]=pick(cc);sockMode=m;break;}}
+        if(!o["靴下"])notes.push(bl==="ショート"?"見せられる丈（クルー・ハイ）で合う靴下がない":"合う靴下がない");
+      }else notes.push("フル丈なので靴下は見えない");}
+    const cats=ORDER.filter(k=>o[k]);
+    return {outfit:o,cats,notes,sockMode,beltMode};
   }
   const top=Object.entries(fails).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).slice(0,2);
   return {err:"ルールに合う組み合わせが見つからなかった"+(top.length?`（主な理由：${top.join("、")}）`:"")+"。ルールを緩めるか、起点の服を変えてみる。"};
@@ -467,12 +505,17 @@ function renderSuggest(all){
   else if(r&&r.outfit){
     const items=Object.values(r.outfit);
     const tags=[];
+    const oo=r.outfit;
+    if(oo["インナー"])tags.push(oo["トップス"].sheer==="あり"?"透け×インナー":"レイヤード");
+    if(oo["ベルト"])tags.push(oo["靴"]&&oo["ベルト"].colorMain===oo["靴"].colorMain?"ベルト：靴と同色":!isBasic(oo["ベルト"].colorMain)?"ベルト：差し色":"ベルト：ベーシック色");
+    if(oo["靴下"])tags.push(r.sockMode==="合わせる"?"靴下：色合わせ":"靴下：差し色");
     if(sg.mode==="rule"){const ln=lineName(r.outfit);if(ln)tags.push(ln);
       const ac=accentColors(items);tags.push(ac.length?`差し色：${ac.join("・")}`:"ベーシック色のみ");
       const nev=items.filter(i=>!i.wear).length;if(nev)tags.push(`未着用 ${nev}着`);}
     else{tags.push("ランダム");const ac=accentColors(items);if(ac.length>S.rules.maxAccent)tags.push("差し色多め");
       const t=r.outfit["トップス"],b=r.outfit["ボトムス"];if(t&&b&&LOOSE(t.silhouette)&&LOOSE(b.silhouette))tags.push("上下とも太い");}
     res=`<div class="card"><div style="margin-bottom:10px">${tags.map(t=>`<span class="tag ${/多め|太い/.test(t)?"ng":""}">${esc(t)}</span>`).join("")}</div>
+      ${(r.notes||[]).length?`<div class="muted" style="margin-bottom:8px">${r.notes.map(esc).join("／")}</div>`:""}
       ${chipGroup("figView",["着画","並べる"],sg.fig?"着画":"並べる")}
       <div style="margin-top:12px" class="${sg.fig?"":"hide"}">${figureHTML(r.outfit)}<p class="muted" style="text-align:center;margin:6px 0 0">写真を体型に当てはめた簡易イメージ</p></div>
       <div class="outfit ${sg.fig?"hide":""}" style="margin-top:12px">${r.cats.filter(c=>r.outfit[c]).map(c=>{const i=r.outfit[c];return `<div class="oItem"><div class="ph">${ph(i)}</div>
@@ -484,7 +527,8 @@ function renderSuggest(all){
       <h3>モード</h3>${chipGroup("mode",["ルール","ランダム"],sg.mode==="rule"?"ルール":"ランダム")}
       <p class="muted" style="margin:8px 0 0">${sg.mode==="rule"?"色・シルエット・着丈・テイストのルールで絞り、着用回数が少ない服を優先する":"カテゴリと季節だけそろえて、あとは完全にランダム"}</p>
       <label class="f">季節</label>${chipGroup("season",SEASONS,sg.season)}
-      <div class="sw-toggle"><span>アウターを含める</span><input type="checkbox" id="outerT" ${sg.outer?"checked":""}></div>
+      ${[["outer","アウターを含める"],["layer","レイヤードする（重ね着・透ける服＋インナー）"],["hat","帽子を含める"],["belt","ベルトを含める"],["socks","靴下を含める（アンクル丈・ショートのときだけ）"]]
+        .map(([k,l])=>`<div class="sw-toggle"><span>${l}</span><input type="checkbox" data-sg="${k}" ${sg[k]?"checked":""}></div>`).join("")}
       ${sg.mode==="rule"?`<label class="f">起点にする服</label><select id="anchorSel"><option value="">おまかせ（着用回数が少ない服から）</option>
         ${anchorOpts.map(i=>`<option value="${i.id}" ${sg.anchor===i.id?"selected":""}>${esc(i.cat)}：${esc(i.name||i.colorMain||"名前なし")}（${i.wear||0}回）</option>`).join("")}</select>`:""}
       <button class="btn" id="gen" style="width:100%;margin-top:14px">コーデを出す</button>
@@ -493,7 +537,7 @@ function renderSuggest(all){
   bindChips(v,g=>{if(g==="mode"){sg.mode=readGroup(v,"mode")==="ランダム"?"random":"rule";sg.result=null;render();}
     if(g==="season"){sg.season=readGroup(v,"season")||curSeason();}
     if(g==="figView"){sg.fig=readGroup(v,"figView")!=="並べる";render();}});
-  $("#outerT").onchange=e=>sg.outer=e.target.checked;
+  v.querySelectorAll("[data-sg]").forEach(c=>c.onchange=()=>{sg[c.dataset.sg]=c.checked;});
   const as=$("#anchorSel");if(as)as.onchange=e=>sg.anchor=e.target.value;
   $("#gen").onclick=()=>{sg.result=generate();render();};
   const ag=$("#again");if(ag)ag.onclick=()=>{sg.result=generate();render();};
@@ -508,7 +552,7 @@ function piece(it,x,y,w,h,clip,z,extra){
   return `<div class="pc ${src?"":"noimg"}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;clip-path:${clip};z-index:${z};background:${bg};${extra||""}">${inner}</div>`;
 }
 function figureHTML(o){
-  const cx=120,top=o["トップス"],bot=o["ボトムス"],out=o["アウター"],sh=o["靴"];
+  const cx=120,top=o["トップス"],inn=o["インナー"],bot=o["ボトムス"],out=o["アウター"],sh=o["靴"],belt=o["ベルト"],hat=o["帽子"],sock=o["靴下"];
   const waist=200,feet=440;
   let h="";
   const skin="#e2ddd5";
@@ -516,18 +560,29 @@ function figureHTML(o){
     <circle cx="120" cy="42" r="24"/><rect x="111" y="62" width="18" height="20" rx="6"/>
     <rect x="44" y="92" width="18" height="190" rx="9"/><rect x="178" y="92" width="18" height="190" rx="9"/>
     <rect x="88" y="200" width="28" height="245" rx="12"/><rect x="124" y="200" width="28" height="245" rx="12"/></g></svg>`;
-  if(bot){const wmap={"タイト":78,"レギュラー":92,"ゆったり":108,"ワイド":126};const w=wmap[bot.silhouette]||92;
+  const TOPCLIP="polygon(18% 0,82% 0,100% 10%,100% 55%,94% 58%,94% 100%,6% 100%,6% 58%,0 55%,0 10%)";
+  const OPEN="polygon(0 8%,16% 0,38% 0,50% 30%,62% 0,84% 0,100% 8%,100% 100%,62% 100%,50% 30%,38% 100%,0 100%)";
+  const tw=t=>({"タイト":112,"レギュラー":124,"ゆったり":140,"ワイド":150}[t.silhouette]||124);
+  const tl=t=>({"短め":112,"普通":138,"長め":168}[t.length]||138);
+  let bw=92;
+  if(bot){const wmap={"タイト":78,"レギュラー":92,"ゆったり":108,"ワイド":126};bw=wmap[bot.silhouette]||92;
     const lmap={"ショート":90,"アンクル":215,"フル":238};const L=lmap[bot.length]||238;
     const taper=bot.silhouette==="タイト"?"8%":bot.silhouette==="レギュラー"?"4%":"0%";
     const r=bot.silhouette==="タイト"?"92%":bot.silhouette==="レギュラー"?"96%":"100%";
-    h+=piece(bot,cx-w/2,waist-6,w,L,`polygon(0 0,100% 0,${r} 100%,53% 100%,50% 16%,47% 100%,${taper} 100%)`,2);}
-  if(top){const lmap={"短め":112,"普通":138,"長め":168};const L=lmap[top.length]||138;
-    const wmap={"タイト":112,"レギュラー":124,"ゆったり":140,"ワイド":150};const w=wmap[top.silhouette]||124;
-    h+=piece(top,cx-w/2,84,w,L,"polygon(18% 0,82% 0,100% 10%,100% 55%,94% 58%,94% 100%,6% 100%,6% 58%,0 55%,0 10%)",3);}
+    h+=piece(bot,cx-bw/2,waist-6,bw,L,`polygon(0 0,100% 0,${r} 100%,53% 100%,50% 16%,47% 100%,${taper} 100%)`,2);}
+  if(sock){const sh2={"くるぶし":12,"クルー":46,"ハイ":90}[sock.sockLen]||46;
+    h+=piece(sock,90,feet-sh2,24,sh2+4,"inset(0 round 4px)",1);h+=piece(sock,126,feet-sh2,24,sh2+4,"inset(0 round 4px)",1);}
+  if(belt){const bh={"細い":6,"普通":9,"太い":12}[belt.beltWidth]||9;h+=piece(belt,cx-bw/2,waist-6,bw,bh,"inset(0)",3);}
+  if(inn){h+=piece(inn,cx-tw(inn)/2,86,tw(inn),tl(inn),TOPCLIP,4);}
+  if(top){const w=tw(top),L=tl(top);
+    if(inn&&top.sheer==="あり")h+=piece(top,cx-w/2,84,w,L,TOPCLIP,5,"opacity:.5");
+    else if(inn)h+=piece(top,cx-(w+8)/2,82,w+8,L,OPEN,5);
+    else h+=piece(top,cx-w/2,84,w,L,TOPCLIP,5);}
   if(out){const lmap={"短め":130,"普通":175,"長め":250};const L=lmap[out.length]||175;
     const wmap={"タイト":136,"レギュラー":148,"ゆったり":162,"ワイド":172};const w=wmap[out.silhouette]||148;
-    h+=piece(out,cx-w/2,80,w,L,"polygon(0 8%,16% 0,40% 0,50% 34%,60% 0,84% 0,100% 8%,100% 100%,61% 100%,50% 34%,39% 100%,0 100%)",4,"box-shadow:0 0 0 1px rgba(0,0,0,.08)");}
-  if(sh){h+=piece(sh,76,feet-6,44,30,"ellipse(50% 50% at 50% 50%)",5);h+=piece(sh,120,feet-6,44,30,"ellipse(50% 50% at 50% 50%)",5,"transform:scaleX(-1)");}
+    h+=piece(out,cx-w/2,80,w,L,"polygon(0 8%,16% 0,40% 0,50% 34%,60% 0,84% 0,100% 8%,100% 100%,61% 100%,50% 34%,39% 100%,0 100%)",6,"box-shadow:0 0 0 1px rgba(0,0,0,.08)"+(out.sheer==="あり"?";opacity:.55":""));}
+  if(sh){h+=piece(sh,76,feet-6,44,30,"ellipse(50% 50% at 50% 50%)",7);h+=piece(sh,120,feet-6,44,30,"ellipse(50% 50% at 50% 50%)",7,"transform:scaleX(-1)");}
+  if(hat){h+=piece(hat,88,6,64,34,"ellipse(50% 100% at 50% 100%)",8);}
   return `<div class="fig">${h}</div>`;
 }
 
@@ -535,7 +590,7 @@ function figureHTML(o){
 function renderLog(all){
   const total=all.length,never=all.filter(i=>!i.wear).length;
   const month=today().slice(0,7);const mCount=S.log.filter(l=>l.date.startsWith(month)).length;
-  const sleeping=all.filter(i=>i.cat!=="小物").sort((a,b)=>daysSince(b.lastWorn)-daysSince(a.lastWorn)).slice(0,6);
+  const sleeping=all.filter(i=>!["アクセサリー","バッグ"].includes(i.cat)).sort((a,b)=>daysSince(b.lastWorn)-daysSince(a.lastWorn)).slice(0,6);
   const most=[...all].sort((a,b)=>(b.wear||0)-(a.wear||0)).filter(i=>i.wear).slice(0,5);
   $("#v-log").innerHTML=`
     <div class="stat"><div><b>${total}</b><span>登録した服</span></div><div><b>${never}</b><span>未着用</span></div><div><b>${mCount}</b><span>今月の記録</span></div></div>
@@ -560,7 +615,10 @@ function renderRules(){
       ${tg("noBothLoose","上下とも太い組み合わせを避ける","ゆったり・ワイド同士を組ませない")}
       ${tg("outerLonger","アウターの着丈はトップス以上","アウターからトップスがはみ出さない")}
       ${tg("tasteMatch","テイストをそろえる","「どれでも」の服はどれとも合う扱い")}
-      ${tg("preferLowWear","着用回数が少ない服を優先する","最近着ていない服ほど出やすくする")}</div>
+      ${tg("preferLowWear","着用回数が少ない服を優先する","最近着ていない服ほど出やすくする")}
+      ${tg("beltMatchShoes","ベルトは必ず靴と色をそろえる","オフのときは、靴と同色か差し色のどちらかを毎回選ぶ")}
+      ${tg("shortsShowSocks","ショート丈のときは靴下を見せる","クルー丈・ハイ丈の靴下だけを選ぶ")}
+      ${tg("innerHemShow","レイヤードでインナーの裾を見せる","インナーの着丈を、上に重ねる服以上にする")}</div>
     <div class="card"><h3>シルエットの名前の付け方</h3><div class="muted">Aライン：トップス短め × ワイド・ゆったりのボトムス<br>Yライン：ゆったりのトップス × タイト・レギュラーのボトムス<br>Iライン：上下ともタイト・レギュラー</div></div>
     <div class="row" style="justify-content:flex-end"><button class="btn sec" id="resetR">初期設定に戻す</button></div>
     <div class="card" style="margin-top:12px"><h3>バックアップ</h3><p class="muted" style="margin:0 0 10px">データはこの端末の中だけにある。機種変更の前や、ときどき書き出してファイルアプリやiCloudに保存しておく。</p>
