@@ -52,7 +52,8 @@ input[type=text],input[type=number],input[type=date],select,textarea{width:100%;
 textarea{min-height:60px}
 .sw{width:14px;height:14px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.2);vertical-align:-2px;margin-right:4px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--bg);width:100%;max-width:640px;max-height:90vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:0 16px calc(28px + env(safe-area-inset-bottom));transition:transform .2s}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:calc(88vh - env(safe-area-inset-top));overflow-y:auto;border-radius:16px 16px 0 0;padding:0 16px calc(28px + env(safe-area-inset-bottom));transition:transform .2s}
+.ovx{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 2.2vh);transform:translateX(-50%);background:rgba(255,255,255,.92);color:var(--ink);border:0;border-radius:999px;padding:7px 16px;font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;white-space:nowrap}
 .sbar{position:sticky;top:0;z-index:3;background:var(--bg);margin:0 -16px 8px;padding:8px 12px 6px;display:flex;align-items:center;justify-content:space-between;touch-action:none}
 .sbar .grip{position:absolute;left:50%;top:6px;width:40px;height:5px;border-radius:3px;background:#cfccc5;transform:translateX(-50%)}
 .sbar .x{border:0;background:#e9e7e2;color:var(--ink);border-radius:999px;padding:7px 14px;font-size:14px;cursor:pointer;margin-top:6px}
@@ -446,7 +447,7 @@ function bindChips(root,onChange){root.querySelectorAll("[data-g]").forEach(g=>g
   onChange&&onChange(g.dataset.g);});}
 
 function openSheet(html){const o=document.createElement("div");o.className="overlay";
-  o.innerHTML=`<div class="sheet"><div class="sbar"><span class="grip"></span><button class="x" data-close>← 戻る</button><span></span></div>${html}</div>`;
+  o.innerHTML=`<button class="ovx" data-close>✕ ここをタップで閉じる</button><div class="sheet"><div class="sbar"><span class="grip"></span><button class="x" data-close>← 戻る</button><span></span></div>${html}</div>`;
   const close=()=>{if(!o.isConnected)return;o.remove();o.dispatchEvent(new Event("closed"));};o.close=close;
   o.onclick=e=>{if(e.target===o)close();};o.querySelectorAll("[data-close]").forEach(b=>b.onclick=close);
   // 上のバーを下にスワイプして閉じる
@@ -454,6 +455,11 @@ function openSheet(html){const o=document.createElement("div");o.className="over
   bar.addEventListener("touchstart",e=>{y0=e.touches[0].clientY;dy=0;sh.style.transition="none";},{passive:true});
   bar.addEventListener("touchmove",e=>{if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform=`translateY(${dy}px)`;},{passive:true});
   bar.addEventListener("touchend",()=>{sh.style.transition="";if(dy>90)close();else sh.style.transform="";y0=null;});
+  // いちばん上までスクロールした状態から、さらに下に引っぱっても閉じる
+  let cy0=null,cdy=0,atTop=false;
+  sh.addEventListener("touchstart",e=>{if(e.target.closest(".sbar"))return;atTop=sh.scrollTop<=0;cy0=e.touches[0].clientY;cdy=0;},{passive:true});
+  sh.addEventListener("touchmove",e=>{if(cy0===null||!atTop)return;cdy=e.touches[0].clientY-cy0;if(cdy>0&&sh.scrollTop<=0){sh.style.transition="none";sh.style.transform=`translateY(${cdy*0.6}px)`;}},{passive:true});
+  sh.addEventListener("touchend",()=>{if(cy0===null)return;sh.style.transition="";if(atTop&&cdy>120)close();else sh.style.transform="";cy0=null;});
   document.body.appendChild(o);return o;}
 
 function openForm(edit,pre){
