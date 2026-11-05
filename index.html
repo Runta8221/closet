@@ -52,7 +52,10 @@ input[type=text],input[type=number],input[type=date],select,textarea{width:100%;
 textarea{min-height:60px}
 .sw{width:14px;height:14px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.2);vertical-align:-2px;margin-right:4px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:16px 16px 28px}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:90vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:0 16px calc(28px + env(safe-area-inset-bottom));transition:transform .2s}
+.sbar{position:sticky;top:0;z-index:3;background:var(--bg);margin:0 -16px 8px;padding:8px 12px 6px;display:flex;align-items:center;justify-content:space-between;touch-action:none}
+.sbar .grip{position:absolute;left:50%;top:6px;width:40px;height:5px;border-radius:3px;background:#cfccc5;transform:translateX(-50%)}
+.sbar .x{border:0;background:#e9e7e2;color:var(--ink);border-radius:999px;padding:7px 14px;font-size:14px;cursor:pointer;margin-top:6px}
 .sheet h2{font-size:17px;margin:0 0 6px}
 .photoPick{aspect-ratio:4/3;background:#ecebe7;border:2px dashed #cfccc5;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--sub);cursor:pointer;overflow:hidden;position:relative}
 .photoPick img{width:100%;height:100%;object-fit:contain;background:#fff}
@@ -442,8 +445,16 @@ function bindChips(root,onChange){root.querySelectorAll("[data-g]").forEach(g=>g
   if(g.dataset.multi==="1")c.classList.toggle("on");else{const was=c.classList.contains("on");if(was&&g.dataset.g!=="colorSub")return;g.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));if(!was)c.classList.add("on");}
   onChange&&onChange(g.dataset.g);});}
 
-function openSheet(html){const o=document.createElement("div");o.className="overlay";o.innerHTML=`<div class="sheet">${html}</div>`;
-  o.onclick=e=>{if(e.target===o)o.remove();};document.body.appendChild(o);return o;}
+function openSheet(html){const o=document.createElement("div");o.className="overlay";
+  o.innerHTML=`<div class="sheet"><div class="sbar"><span class="grip"></span><button class="x" data-close>← 戻る</button><span></span></div>${html}</div>`;
+  const close=()=>{if(!o.isConnected)return;o.remove();o.dispatchEvent(new Event("closed"));};o.close=close;
+  o.onclick=e=>{if(e.target===o)close();};o.querySelectorAll("[data-close]").forEach(b=>b.onclick=close);
+  // 上のバーを下にスワイプして閉じる
+  const sh=o.querySelector(".sheet"),bar=o.querySelector(".sbar");let y0=null,dy=0;
+  bar.addEventListener("touchstart",e=>{y0=e.touches[0].clientY;dy=0;sh.style.transition="none";},{passive:true});
+  bar.addEventListener("touchmove",e=>{if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform=`translateY(${dy}px)`;},{passive:true});
+  bar.addEventListener("touchend",()=>{sh.style.transition="";if(dy>90)close();else sh.style.transform="";y0=null;});
+  document.body.appendChild(o);return o;}
 
 function openForm(edit,pre){
   const it=edit?{...edit}:{cat:"トップス",seasons:[curSeason()],silhouette:"レギュラー",length:"普通",taste:"カジュアル",colorMain:"",colorSub:""};
@@ -538,9 +549,9 @@ function askCat(blob,title){return new Promise(res=>{const u=URL.createObjectURL
   const o=openSheet(`<h2>${title}</h2><div class="photoPick" style="aspect-ratio:1/1;max-height:40vh"><img src="${u}"></div><div style="margin-top:10px">${chipGroup("qc",QCATS,"")}</div>
     <div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sec" id="qSkip">これは取り込まない</button><button class="btn sec" id="qQuit">やめる</button></div>`);
   o.querySelector("[data-g=qc]").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;o.remove();URL.revokeObjectURL(u);res(c.dataset.o);};
-  o.querySelector("#qSkip").onclick=()=>{o.remove();res("");};o.querySelector("#qQuit").onclick=()=>{o.remove();res(null);};});}
+  o.addEventListener("closed",()=>res(null));o.querySelector("#qSkip").onclick=()=>{o.remove();res("");};o.querySelector("#qQuit").onclick=()=>{o.remove();res(null);};});}
 function confirmSheet(msg,yes,no){return new Promise(res=>{const o=openSheet(`<p style="font-size:16px">${msg}</p><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn sec" id="cN">${no}</button><button class="btn acc" id="cY">${yes}</button></div>`);
-  o.querySelector("#cY").onclick=()=>{o.remove();res(true);};o.querySelector("#cN").onclick=()=>{o.remove();res(false);};o.onclick=e=>{if(e.target===o){o.remove();res(false);}};});}
+  o.addEventListener("closed",()=>res(false));o.querySelector("#cY").onclick=()=>{o.remove();res(true);};o.querySelector("#cN").onclick=()=>{o.remove();res(false);};o.onclick=e=>{if(e.target===o){o.remove();res(false);}};});}
 // 今日のコーデを撮る
 async function outfitShot(){const base=await pickPhoto();if(!base)return;
   const diary=await shrink(base,1200,.82);const ids=[];
@@ -550,7 +561,7 @@ async function outfitShot(){const base=await pickPhoto();if(!base)return;
       <div style="flex:1"><div class="muted">着ている服（${chosen.length}着）</div><div class="row" style="gap:6px;margin-top:6px">${chosen.map(i=>`<div class="th" style="width:46px;height:46px;border-radius:6px;overflow:hidden;background:#eee">${imgSrc(i)?`<img src="${esc(imgSrc(i))}" style="width:100%;height:100%;object-fit:cover">`:""}</div>`).join("")||'<span class="muted">まだない</span>'}</div></div></div>
       <div class="row" style="margin-top:12px"><button class="btn sec" id="oCut" style="flex:1">写真から服を囲む</button><button class="btn sec" id="oList" style="flex:1">一覧から選ぶ</button></div>
       <button class="btn acc" id="oDone" style="width:100%;margin-top:10px">これで記録する</button><button class="btn sec" id="oQuit" style="width:100%;margin-top:8px">やめる</button>`);
-    const end=v=>{o.remove();URL.revokeObjectURL(u);res(v);};
+    const end=v=>{o.remove();URL.revokeObjectURL(u);res(v);};o.addEventListener("closed",()=>end("quit"));
     o.querySelector("#oCut").onclick=()=>end("cut");o.querySelector("#oList").onclick=()=>end("list");o.querySelector("#oDone").onclick=()=>end("done");o.querySelector("#oQuit").onclick=()=>end("quit");});
   while(true){const a=await pick();
     if(a==="quit")return;
@@ -565,7 +576,7 @@ function chooseExisting(cat,color,blob){return new Promise(res=>{
     ${blob?`<button class="btn acc" id="ceNew" style="width:100%;margin-bottom:10px">新しい服として登録する</button>`:""}
     <div class="outfit">${list.map(i=>`<div class="oItem" data-pick="${i.id}" style="cursor:pointer"><div class="ph">${ph(i)}</div><div class="nm">${esc(i.name||i.cat)}</div></div>`).join("")||'<div class="muted">まだ登録がない</div>'}</div>
     <button class="btn sec" id="ceCancel" style="width:100%;margin-top:12px">戻る</button>`);
-  const end=v=>{o.remove();if(u)URL.revokeObjectURL(u);res(v);};
+  const end=v=>{o.remove();if(u)URL.revokeObjectURL(u);res(v);};o.addEventListener("closed",()=>end(null));
   o.querySelectorAll("[data-pick]").forEach(e=>e.onclick=()=>end(e.dataset.pick));o.querySelector("#ceCancel").onclick=()=>end(null);
   const nb=o.querySelector("#ceNew");if(nb)nb.onclick=async()=>{const it=await newItemFromBlob(blob,cat);end(it.id);};});}
 // 文字で一気に登録
