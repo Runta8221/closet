@@ -384,11 +384,11 @@ $("#helpBtn").onclick=showHelp;
 async function loadSamples(){const now=Date.now();
   let list;try{const r=await fetch("samples/samples.json",{cache:"no-cache"});if(!r.ok)throw new Error(r.status);list=await r.json();}
   catch(e){openSheet(`<h2>お試しの服を読み込めなかった</h2><p>お試し用の服のデータ（samples フォルダ）が見つからない。電波を確認するか、公開しているサイトに samples フォルダが入っているかを確認する。</p>`);return false;}
-  toast("作った人のクローゼットを読み込み中…");let k=0;
-  for(const a of list){let key=null;try{const b=await (await fetch("samples/"+a.img)).blob();key=await savePhoto(b);}catch(e){}
+  toast("作った人のクローゼットを読み込み中…");let k=0,miss=0;
+  for(const a of list){let key=null;try{const r=await fetch("samples/"+a.img,{cache:"no-cache"});if(!r.ok||!(r.headers.get("content-type")||"").startsWith("image"))throw 0;key=await savePhoto(await r.blob());}catch(e){miss++;}
     const id="sample_"+(k++);let lw="";if(a.ago!=null){const d=new Date(now-a.ago*86400000);lw=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
     const it={...a,id,sample:true,created:now-400*86400000+k,lastWorn:lw,...(key?{photoKey:key}:{})};delete it.ago;delete it.img;await saveItem(it);}
-  render();return true;}
+  render();if(miss)setTimeout(()=>toast(`写真を${miss}枚読み込めなかった。公開の反映が終わってから、設定でお試しを消して入れ直す`),1500);return true;}
 async function clearSamples(){for(const it of Object.values(S.items).filter(i=>i.sample))await deleteItem(it.id);
   S.log=S.log.map(l=>({...l,ids:l.ids.filter(id=>!String(id).startsWith("sample_"))})).filter(l=>l.ids.length);await saveLog();
   S.favs=S.favs.filter(f=>!Object.values(f.slots).some(id=>String(id).startsWith("sample_")));await saveFavs();S.sug.result=null;S.sug.pack=null;render();toast("お試しデータを消した");}
