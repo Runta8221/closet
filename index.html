@@ -314,9 +314,9 @@ function cropImage(src){return new Promise(resolve=>{
 /* ===== 初回の案内・ヘルプ ===== */
 const OB_PAGES=[
  {ic:"👕",h:"持っているのに着ていない服、ありませんか",b:`<p style="text-align:center">クローゼットは、手持ちの服から<b>しばらく着ていない服を優先して</b>コーデを組むアプリです。</p><p style="text-align:center" class="muted">「着る服がない」ではなく「着ていない服がある」を減らします。</p>`},
- {ic:"✨",h:"できること",b:`<div class="step"><b>眠っている服が回ってくる</b><br><span class="muted">着た記録をつけるほど、最近着ていない服が提案に出やすくなる</span></div>
-   <div class="step"><b>自分の基準で組める</b><br><span class="muted">シルエットのバランス、差し色の数、ベルトや靴下の合わせ方を自分で決められる。使うほど好みも覚える</span></div>
-   <div class="step"><b>買う前に分かる</b><br><span class="muted">気になる服が、手持ちと何通り組めるか、サイズが合うかを確かめられる</span></div>`},
+ {ic:"✨",h:"できること",b:`<div class="step"><b>⏰ 朝、迷ったらボタン1つ</b><br><span class="muted">シルエットや色の数など、自分の基準に合う組み合わせだけを出す。使うほど好みも覚える</span></div>
+   <div class="step"><b>🔁 着ていない服が回ってくる</b><br><span class="muted">着た記録をつけるほど、最近着ていない服が提案に出やすくなる</span></div>
+   <div class="step"><b>🧳 旅行の服が一度に決まる</b><br><span class="muted">日数を入れると、毎日のコーデと持ち物リストが出る。少ない枚数で着回すので荷物も減る</span></div>`},
  {ic:"🔒",h:"服の写真はこのスマホの中だけ",b:`<p style="text-align:center">登録した服や写真は、どこにも送られません。アカウント登録もいりません。</p><p style="text-align:center" class="muted">まずは作った人のクローゼットで、どんなコーデが出るか見てみてください。自分の服は、文字で打つだけでも登録できます。</p>`,last:true}];
 const UA=navigator.userAgent;const IS_IOS=/iPhone|iPad|iPod/.test(UA),IS_ANDROID=/Android/.test(UA);
 const IN_APP=/Instagram|FBAN|FBAV|Line\/|Twitter|TikTok|musical_ly|BytedanceWebview/i.test(UA);
@@ -347,7 +347,7 @@ function guardOwn(fn){let ok=false;try{ok=sessionStorage.getItem("closet-install
 function showFirstVisit(){return new Promise(res=>{const ov=document.createElement("div");ov.className="ob";document.body.appendChild(ov);
   ov.innerHTML=`<div class="pg"><div class="ic">👕</div><h2>着ていない服から、<br>コーデを組むアプリ</h2>
     <p style="text-align:center" class="muted">手持ちの服を入れると、しばらく着ていない服を優先して、自分の基準でコーデを出します。</p>
-    <div class="step">🔁 眠っている服が回ってくる</div><div class="step">📐 シルエットや色の数を自分で決められる</div><div class="step">🛍 買う前に、手持ちと何通り組めるか分かる</div>
+    <div class="step">⏰ 朝、迷ったらボタン1つでコーデが決まる</div><div class="step">🔁 着ていない服を優先して回してくれる</div><div class="step">🧳 旅行の日数を入れると、毎日のコーデと持ち物リストが出る</div>
     <p style="text-align:center" class="muted">登録もアカウントもいりません。まずは作った人の手持ちの服27着で、どんなコーデが出るか見てみてください。</p></div>
     <div class="nav"><button class="btn acc" id="fvTry" style="flex:2">作った人のクローゼットで試す</button></div>
     <div class="nav" style="margin-top:8px"><button class="btn sec" id="fvOwn">自分の服で使う</button></div>`;
