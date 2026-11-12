@@ -31,6 +31,7 @@ main{padding:14px 14px calc(90px + env(safe-area-inset-bottom));max-width:760px;
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;user-select:none}
 .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.lpph img{width:100%;height:100%;object-fit:cover;display:block}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
 .item{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--line);cursor:pointer}
 .ph{aspect-ratio:1/1;background:#ecebe7;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;overflow:hidden}
@@ -164,7 +165,7 @@ const SLIM=s=>s==="タイト"||s==="レギュラー";
 
 /* ===== 状態 ===== */
 const S={wants:[],borrowed:[],pref:{},favs:[],ver:0,items:{},rules:{...DEFAULT_RULES},log:[],mode:"local",uid:null,db:null,assets:null,view:"closet",filter:"すべて",sort:"new",
-  sug:{scene:"指定なし",packDays:3,fig:true,layer:false,hat:false,belt:false,socks:false,scarf:false,mode:"rule",season:curSeason(),outer:["秋","冬"].includes(curSeason()),anchor:"",result:null}};
+  sug:{locks:[],scene:"指定なし",packDays:3,fig:true,layer:false,hat:false,belt:false,socks:false,scarf:false,mode:"rule",season:curSeason(),outer:["秋","冬"].includes(curSeason()),anchor:"",result:null}};
 function curSeason(){const m=new Date().getMonth()+1;return m>=3&&m<=5?"春":m>=6&&m<=8?"夏":m>=9&&m<=11?"秋":"冬";}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -226,6 +227,7 @@ async function init(){
   if(!seen){try{seen=!!(await idbGet("meta","ob"));}catch(e){}}
   if(!seen&&!Object.keys(S.items).length&&!/^#rules=/.test(location.hash)){if(needInstall())await showFirstVisit();else showOnboarding();}
   checkSharedRules();window.addEventListener("hashchange",checkSharedRules);
+  if(Object.values(S.items).some(i=>i.sample))repairSamples();
 }
 function banner(t){const b=$("#banner");b.textContent=t;b.classList.remove("hide");}
 
@@ -352,7 +354,7 @@ function showFirstVisit(){return new Promise(res=>{const ov=document.createEleme
     <div class="nav"><button class="btn acc" id="fvTry" style="flex:2">作った人のクローゼットで試す</button></div>
     <div class="nav" style="margin-top:8px"><button class="btn sec" id="fvOwn">自分の服で使う</button></div>`;
   ov.querySelector("#fvTry").onclick=async()=>{ov.remove();try{localStorage.setItem("closet-ob","1");}catch(e){}
-    if(!Object.values(S.items).some(i=>i.sample)){const ok=await loadSamples();if(!ok){res();return;}}S.view="suggest";S.sug.result=generate();render();setTimeout(()=>{const f=document.querySelector("#v-suggest .col")||document.querySelector("#v-suggest .fig");if(f)f.closest(".card").scrollIntoView({behavior:"smooth",block:"start"});},50);
+    if(!Object.values(S.items).some(i=>i.sample)){const ok=await loadSamples();if(!ok){res();return;}}else await repairSamples(true);S.view="suggest";S.sug.result=generate();render();setTimeout(()=>{const f=document.querySelector("#v-suggest .col")||document.querySelector("#v-suggest .fig");if(f)f.closest(".card").scrollIntoView({behavior:"smooth",block:"start"});},50);
     toast("作った人の服でコーデを出した。「引き直す」で別の組み合わせになる");res();};
   ov.querySelector("#fvOwn").onclick=()=>{ov.remove();try{localStorage.setItem("closet-ob","1");}catch(e){}res();guardOwn(()=>{S.view="closet";render();addMenu();});};});}
 function showOnboarding(){let i=0;const ov=document.createElement("div");ov.className="ob";document.body.appendChild(ov);
@@ -389,6 +391,11 @@ async function loadSamples(){const now=Date.now();
     const id="sample_"+(k++);let lw="";if(a.ago!=null){const d=new Date(now-a.ago*86400000);lw=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
     const it={...a,id,sample:true,created:now-400*86400000+k,lastWorn:lw,...(key?{photoKey:key}:{})};delete it.ago;delete it.img;await saveItem(it);}
   render();if(miss)setTimeout(()=>toast(`写真を${miss}枚読み込めなかった。公開の反映が終わってから、設定でお試しを消して入れ直す`),1500);return true;}
+async function repairSamples(quiet){const bad=Object.values(S.items).filter(i=>i.sample&&(!i.photoKey||!PHOTO_URL[i.photoKey]));if(!bad.length)return 0;
+  let list;try{const r=await fetch("samples/samples.json",{cache:"no-cache"});if(!r.ok)return -1;list=await r.json();}catch(e){return -1;}
+  let ok=0;for(const it of bad){const a=list[+String(it.id).replace("sample_","")];if(!a||!a.img)continue;
+    try{const r=await fetch("samples/"+a.img,{cache:"no-cache"});if(!r.ok||!(r.headers.get("content-type")||"").startsWith("image"))continue;const key=await savePhoto(await r.blob());await saveItem({...it,photoKey:key});ok++;}catch(e){}}
+  if(ok&&!quiet)toast(`お試しの写真を${ok}枚読み込んだ`);render();return ok;}
 async function clearSamples(){for(const it of Object.values(S.items).filter(i=>i.sample))await deleteItem(it.id);
   S.log=S.log.map(l=>({...l,ids:l.ids.filter(id=>!String(id).startsWith("sample_"))})).filter(l=>l.ids.length);await saveLog();
   S.favs=S.favs.filter(f=>!Object.values(f.slots).some(id=>String(id).startsWith("sample_")));await saveFavs();S.sug.result=null;S.sug.pack=null;render();toast("お試しデータを消した");}
@@ -460,6 +467,18 @@ function bindChips(root,onChange){root.querySelectorAll("[data-g]").forEach(g=>g
   if(g.dataset.multi==="1")c.classList.toggle("on");else{const was=c.classList.contains("on");if(was&&g.dataset.g!=="colorSub")return;g.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));if(!was)c.classList.add("on");}
   onChange&&onChange(g.dataset.g);});}
 
+function openLockPicker(opts){const sg=S.sug;const sel=new Set(sg.locks||[]);
+  const cats=["トップス","ボトムス","アウター","靴","ベルト","帽子","マフラー・ストール","靴下"].filter(c=>opts.some(i=>inCat(i,c)));let cur=cats[0];
+  const o=openSheet(`<h3 style="margin:4px 0 8px">決まっている服を選ぶ</h3><div class="row" id="lpTabs" style="gap:6px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px"></div>
+    <div id="lpGrid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px"></div>
+    <div style="position:sticky;bottom:0;background:var(--bg);padding:10px 0 4px;margin-top:10px"><button class="btn" id="lpDone" style="width:100%">決定（<span id="lpN">0</span>着）</button></div>`);
+  const q=x=>o.querySelector(x);
+  const draw=()=>{q("#lpN").textContent=sel.size;
+    q("#lpTabs").innerHTML=cats.map(c=>{const n=opts.filter(i=>inCat(i,c)&&sel.has(i.id)).length;return `<span class="chip ${c===cur?"on":""}" data-lpc="${c}" style="flex:none">${c}${n?` ●${n}`:""}</span>`;}).join("");
+    q("#lpGrid").innerHTML=opts.filter(i=>inCat(i,cur)).map(i=>{const on=sel.has(i.id);return `<div data-lpi="${i.id}" style="cursor:pointer;position:relative"><div class="ph lpph" style="aspect-ratio:1;width:100%;border-radius:10px;overflow:hidden;outline:${on?"3px solid var(--acc)":"1px solid var(--line)"};outline-offset:-1px">${ph(i)}</div>${on?`<span style="position:absolute;top:4px;right:4px;background:var(--acc);color:#fff;border-radius:10px;font-size:11px;padding:1px 6px">🔒</span>`:""}<div style="font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name||i.cat)}</div><div class="muted" style="font-size:10px">${i.wear||0}回</div></div>`;}).join("");
+    o.querySelectorAll("[data-lpc]").forEach(e=>e.onclick=()=>{cur=e.dataset.lpc;draw();});
+    o.querySelectorAll("[data-lpi]").forEach(e=>e.onclick=()=>{const id=e.dataset.lpi;sel.has(id)?sel.delete(id):sel.add(id);draw();});};
+  draw();q("#lpDone").onclick=()=>{sg.locks=[...sel];S._shown=[];o.close();render();};}
 function openSheet(html){const o=document.createElement("div");o.className="overlay";
   o.innerHTML=`<button class="ovx" data-close>✕ ここをタップで閉じる</button><div class="sheet"><div class="sbar"><span class="grip"></span><button class="x" data-close>← 戻る</button><span></span></div>${html}</div>`;
   const close=()=>{if(!o.isConnected)return;o.remove();o.dispatchEvent(new Event("closed"));};o.close=close;
@@ -850,14 +869,14 @@ function pickWeighted(arr){const w=arr.map(weight);const t=w.reduce((a,b)=>a+b,0
 const pickRand=a=>a[Math.floor(Math.random()*a.length)];
 
 const MAINW=["トップス","インナー","ボトムス","アウター","靴","帽子","マフラー・ストール"];
-function checkPair(chosen,cand,slot){
+function checkPair(chosen,cand,slot,ign){const NG=r=>!(ign&&ign.has(r));
   const R=S.rules,all=[...Object.values(chosen),cand];
-  if(accentColors(all).length>R.maxAccent)return "差し色が多い";
+  if(accentColors(all).length>R.maxAccent)if(NG("差し色が多い"))return "差し色が多い";
   const top=slot==="トップス"?cand:chosen["トップス"],bot=slot==="ボトムス"?cand:chosen["ボトムス"],out=slot==="アウター"?cand:chosen["アウター"];
-  if(R.noBothLoose&&top&&bot&&LOOSE(top.silhouette)&&LOOSE(bot.silhouette))return "上下とも太い";
-  if(R.outerLonger&&top&&out&&lenIdx(out.length)>=0&&lenIdx(top.length)>=0&&lenIdx(out.length)<lenIdx(top.length))return "アウターがトップスより短い";
+  if(R.noBothLoose&&top&&bot&&LOOSE(top.silhouette)&&LOOSE(bot.silhouette))if(NG("上下とも太い"))return "上下とも太い";
+  if(R.outerLonger&&top&&out&&lenIdx(out.length)>=0&&lenIdx(top.length)>=0&&lenIdx(out.length)<lenIdx(top.length))if(NG("アウターがトップスより短い"))return "アウターがトップスより短い";
   if(R.tasteMatch&&MAINW.includes(slot)){for(const k in chosen){if(!MAINW.includes(k))continue;const c=chosen[k];
-    const a=tastesOf(c),b=tastesOf(cand);if(a.length&&b.length&&!a.includes("どれでも")&&!b.includes("どれでも")&&!a.some(x=>b.includes(x)))return "テイストが違う";}}
+    const a=tastesOf(c),b=tastesOf(cand);if(a.length&&b.length&&!a.includes("どれでも")&&!b.includes("どれでも")&&!a.some(x=>b.includes(x)))if(NG("テイストが違う"))return "テイストが違う";}}
   return null;
 }
 function lineName(o){const t=o["トップス"],b=o["ボトムス"];if(!t||!b)return "";
@@ -880,18 +899,26 @@ function generateCore(sg,opt={}){
   if(!tops.length)return {err:`${season}に着られるトップスが登録されていない`};
   if(!by("ボトムス").length)return {err:`${season}に着られるボトムスが登録されていない`};
   if(sg.layer&&!tops.some(canOver))return {err:"上に重ねられるトップスか透けるトップスが登録されていない。服の編集で「着方」に「上に重ねる」を入れるか、「透け感」を設定する"};
-  const pick=a=>rule?pickWeighted(a):pickRand(a);
+  const shown=opt.noAnchor?[]:(S._shown||[]);
+  const pick=a=>{let b=a;for(let n=shown.length;n>0;n--){const ex=new Set(shown.slice(-n).flat());const f=a.filter(x=>!ex.has(x.id));if(f.length){b=f;break;}}return rule?pickWeighted(b):pickRand(b);};
   const fails={};
   const recent=(arr)=>{if(!rule||opt.noRecent||!R.avoidDays)return arr;const a=arr.filter(x=>daysSince(x.lastWorn)>=R.avoidDays);return a.length?a:arr;};
-  const fit=(o,slot,arr0)=>{const used=new Set(Object.values(o).map(y=>y.id));const arr=arr0.filter(x=>!used.has(x.id));return !rule?arr:recent(arr.filter(x=>{const r=checkPair(o,x,slot);if(r)fails[r]=(fails[r]||0)+1;return !r;}));};
-  const anchor=rule&&sg.anchor&&!opt.noAnchor?S.items[sg.anchor]:null;
+  const fit=(o,slot,arr0)=>{const used=new Set(Object.values(o).map(y=>y.id));const arr=arr0.filter(x=>!used.has(x.id));return !rule?arr:recent(arr.filter(x=>{const r=checkPair(o,x,slot,ign);if(r)fails[r]=(fails[r]||0)+1;return !r;}));};
+  const locks=opt.noAnchor?[]:(sg.locks||[]).map(id=>S.items[id]).filter(Boolean);
+  const placeLocks=o=>{const lt=locks.filter(i=>inCat(i,"トップス"));
+    if(lt.length>=2){const ov=lt.find(x=>canOver(x)&&!canSolo(x))||lt.find(canOver),un=lt.find(x=>x!==ov&&canUnder(x))||lt.find(x=>x!==ov);if(ov&&un){o["トップス"]=ov;o["インナー"]=un;}else{o["トップス"]=lt[0];o["インナー"]=lt[1];}}
+    else if(lt.length===1){const x=lt[0];if(!canSolo(x)&&!canOver(x)&&canUnder(x))o["インナー"]=x;else o["トップス"]=x;}
+    for(const it of locks){if(Object.values(o).includes(it))continue;
+      for(const c of ["ボトムス","アウター","靴","ベルト","帽子","マフラー・ストール","靴下"])if(inCat(it,c)&&!o[c]){o[c]=it;break;}}};
+  const ign=new Set();if(rule&&locks.length){const lo={};placeLocks(lo);
+    for(const [c,it] of Object.entries(lo)){const rest={...lo};delete rest[c];for(let k=0;k<5;k++){const r=checkPair(rest,it,c,ign);if(!r)break;ign.add(r);}}}
   for(let t=0;t<300;t++){
     const o={},notes=[];let sockMode="",beltMode="";
-    if(anchor)o[anchor.cat]=anchor;
+    placeLocks(o);if(ign.size)notes.push("固定した服どうしが「"+[...ign].join("、")+"」に当たるので、このルールは外して組んだ");
     // メインのトップス
-    if(!o["トップス"]){let c=tops.filter(x=>sg.layer?canOver(x):canSolo(x));c=fit(o,"トップス",c);if(!c.length){fails["トップスが合わない"]=(fails["トップスが合わない"]||0)+1;continue;}o["トップス"]=pick(c);}
+    if(!o["トップス"]){let c=tops.filter(x=>(sg.layer||o["インナー"])?canOver(x):canSolo(x));c=fit(o,"トップス",c);if(!c.length){fails["トップスが合わない"]=(fails["トップスが合わない"]||0)+1;continue;}o["トップス"]=pick(c);}
     const main=o["トップス"];
-    if((sg.layer&&canOver(main))||!canSolo(main)){
+    if(!o["インナー"]&&((sg.layer&&canOver(main))||!canSolo(main))){
       let c=inners.filter(x=>x.id!==main.id);
       if(rule&&R.innerHemShow)c=c.filter(x=>lenIdx(x.length)>=lenIdx(main.length));
       if(rule&&R.sleeveLayer&&main.sleeve==="半袖"){const lg=c.filter(x=>x.sleeve==="長袖");if(lg.length)c=lg;}
@@ -899,16 +926,16 @@ function generateCore(sg,opt={}){
     if(!o["ボトムス"]){const c=fit(o,"ボトムス",by("ボトムス"));if(!c.length)continue;o["ボトムス"]=pick(c);}
     if(sg.outer&&!o["アウター"]&&by("アウター").length){const c=fit(o,"アウター",by("アウター"));if(c.length)o["アウター"]=pick(c);}
     if(!o["靴"]&&by("靴").length){const c=fit(o,"靴",by("靴"));if(c.length)o["靴"]=pick(c);}
-    if(sg.belt&&by("ベルト").length){const c=by("ベルト");const ref=o["靴"]?mainsOf(o["靴"]):[];
+    if(!o["ベルト"]&&sg.belt&&by("ベルト").length){const c=by("ベルト");const ref=o["靴"]?mainsOf(o["靴"]):[];
       const modes=!rule?["どれでも"]:(R.beltMatchShoes?["合わせる"]:(Math.random()<.5?["合わせる","差し色"]:["差し色","合わせる"]));
       for(const m of modes){let cc=m==="どれでも"?c:c.filter(x=>m==="合わせる"?mainsOf(x).some(k=>ref.includes(k)):mainsOf(x).some(k=>!isBasic(k)));cc=fit(o,"ベルト",cc);
         if(!cc.length&&m==="合わせる")cc=fit(o,"ベルト",c.filter(x=>mainsOf(x).every(k=>isBasic(k))));
         if(cc.length){o["ベルト"]=pick(cc);beltMode=m;break;}}
       if(!o["ベルト"])notes.push("合うベルトがない");}
-    if(sg.scarf&&by("マフラー・ストール").length){const c=fit(o,"マフラー・ストール",by("マフラー・ストール"));if(c.length)o["マフラー・ストール"]=pick(c);else notes.push("合うマフラー・ストールがない");}
-    if(sg.hat&&by("帽子").length){const c=fit(o,"帽子",by("帽子"));if(c.length)o["帽子"]=pick(c);else notes.push("合う帽子がない");}
+    if(!o["マフラー・ストール"]&&sg.scarf&&by("マフラー・ストール").length){const c=fit(o,"マフラー・ストール",by("マフラー・ストール"));if(c.length)o["マフラー・ストール"]=pick(c);else notes.push("合うマフラー・ストールがない");}
+    if(!o["帽子"]&&sg.hat&&by("帽子").length){const c=fit(o,"帽子",by("帽子"));if(c.length)o["帽子"]=pick(c);else notes.push("合う帽子がない");}
     const bl=o["ボトムス"].length;
-    if(sg.socks&&by("靴下").length){
+    if(!o["靴下"]&&sg.socks&&by("靴下").length){
       if(bl==="ショート"||bl==="アンクル"){
         let c=by("靴下");if(bl==="ショート"&&R.shortsShowSocks)c=c.filter(x=>x.sockLen==="クルー"||x.sockLen==="ハイ");
         const ref=[...mainsOf(o["靴"]),...mainsOf(o["ボトムス"])];
@@ -936,7 +963,8 @@ function outfitFeatures(o){const f=[];const t=o["トップス"],b=o["ボトム�
   return f;}
 function prefScore(o){return outfitFeatures(o).reduce((a,k)=>a+(S.pref[k]||0),0);}
 async function learn(o,d){outfitFeatures(o).forEach(k=>{S.pref[k]=Math.round(((S.pref[k]||0)+d)*10)/10;});await savePref();}
-function generate(){const sg=S.sug;const b=sg.mode==="rule"&&sg.owner&&S.borrowed.find(x=>x.id===sg.owner);
+function generate(){const r=generate0();if(r&&r.outfit){const lk=S.sug.locks||[];S._shown=[...(S._shown||[]),Object.values(r.outfit).map(i=>i.id).filter(id=>!lk.includes(id))].slice(-3);}return r;}
+function generate0(){const sg=S.sug;const b=sg.mode==="rule"&&sg.owner&&S.borrowed.find(x=>x.id===sg.owner);
   if(!b)return generateInner();const R0=S.rules,P0=S.pref;S.rules={...DEFAULT_RULES,...b.rules};S.pref=b.pref||{};
   try{const r=generateInner();if(r&&r.outfit)r.notes=[...(r.notes||[]),`${b.name}さんのルールで組んだ`];return r;}finally{S.rules=R0;S.pref=P0;}}
 function generateInner(){const sg=S.sug;
@@ -994,7 +1022,7 @@ function renderSuggest(all){
   const hasT=all.some(i=>inCat(i,"トップス")),hasB=all.some(i=>inCat(i,"ボトムス"));
   if(!hasT||!hasB){$("#v-suggest").innerHTML=`${sampleBar()}<div class="guide"><b>コーデを出すには</b><p style="margin:8px 0">トップスとボトムスを1着ずつ以上登録すると、ここで組み合わせを提案できる。（今：トップス${hasT?"あり":"なし"}、ボトムス${hasB?"あり":"なし"}）</p>
     <div class="row"><button class="btn acc" data-loadsample style="flex:1">作った人の服で試す</button><button class="btn sec" data-addown style="flex:1">服を登録する</button></div></div>`;return;}
-  const anchorOpts=all.filter(i=>catsOf(i).some(c=>["トップス","ボトムス","アウター","靴"].includes(c))).sort((a,b)=>(a.wear||0)-(b.wear||0));
+  const anchorOpts=all.filter(i=>catsOf(i).some(c=>["トップス","ボトムス","アウター","靴","ベルト","帽子","マフラー・ストール","靴下"].includes(c))).sort((a,b)=>((sg.locks||[]).includes(b.id)-(sg.locks||[]).includes(a.id))||(a.wear||0)-(b.wear||0));
   const r=sg.result;
   let res="";
   if(r&&r.err)res=`<div class="card"><div style="color:var(--warn)">${esc(r.err)}</div></div>`;
@@ -1017,6 +1045,8 @@ function renderSuggest(all){
       <div style="margin-top:12px" class="${sg.vmode==="着画"?"":"hide"}">${figureHTML(r.outfit)}<p class="muted" style="text-align:center;margin:6px 0 0">写真を体型に当てはめた簡易イメージ</p></div>
       <div class="outfit ${sg.vmode==="並べる"?"":"hide"}" style="margin-top:12px">${r.cats.filter(c=>r.outfit[c]).map(c=>{const i=r.outfit[c];return `<div class="oItem"><div class="ph">${ph(i)}</div>
         <div class="lb">${c}・${i.wear||0}回</div><div class="nm">${esc(i.name||c)}</div></div>`;}).join("")}</div>
+      <div class="muted" style="margin-top:12px">🔒を付けた服はそのままで、残りだけ引き直せる</div>
+      <div class="row" style="margin-top:6px;gap:6px">${r.cats.filter(c=>r.outfit[c]).map(c=>{const i=r.outfit[c];const on=(sg.locks||[]).includes(i.id);return `<span class="chip ${on?"on":""}" data-rlock="${i.id}">${on?"🔒 ":""}${esc(i.name||c)}</span>`;}).join("")}</div>
       <div class="row" style="margin-top:14px"><button class="btn sec" id="like" style="flex:1;padding:11px 6px;font-size:14px">👍 いいね</button><button class="btn sec" id="dislike" style="flex:1;padding:11px 6px;font-size:14px">👎 いまいち</button><button class="btn sec" id="fav" style="flex:1;padding:11px 6px;font-size:14px">☆ 保存</button></div>
       <div class="row" style="margin-top:8px"><button class="btn sec" id="again" style="flex:1">引き直す</button><button class="btn acc" id="wore" style="flex:1">これを着た</button></div></div>`;
   }
@@ -1029,8 +1059,9 @@ function renderSuggest(all){
       ${sg.mode==="rule"&&S.borrowed.length?`<label class="f">だれのルールで組むか</label>${chipGroup("owner",["自分",...S.borrowed.map(b=>b.name+"さん")],sg.owner?(S.borrowed.find(b=>b.id===sg.owner)||{name:""}).name+"さん":"自分")}`:""}
       ${[["outer","アウターを含める"],["layer","レイヤードする（重ね着・透ける服＋インナー）"],["hat","帽子を含める"],["scarf","マフラー・ストールを含める"],["belt","ベルトを含める"],["socks","靴下を含める（アンクル丈・ショートのときだけ）"]]
         .map(([k,l])=>`<div class="sw-toggle"><span>${l}</span><input type="checkbox" data-sg="${k}" ${sg[k]?"checked":""}></div>`).join("")}
-      ${sg.mode==="rule"?`<label class="f">起点にする服</label><select id="anchorSel"><option value="">おまかせ（着用回数が少ない服から）</option>
-        ${anchorOpts.map(i=>`<option value="${i.id}" ${sg.anchor===i.id?"selected":""}>${esc(i.cat)}：${esc(i.name||i.colorMain||"名前なし")}（${i.wear||0}回）</option>`).join("")}</select>`:""}
+      <label class="f">もう決まっている服（複数可・タップで選ぶ）</label>
+      <div class="row" style="gap:6px;align-items:center">${(sg.locks||[]).map(id=>S.items[id]).filter(Boolean).map(i=>`<span class="chip on" data-unlock="${i.id}">🔒 ${esc(i.name||i.cat)} ✕</span>`).join("")}<button class="btn sec" id="pickLocks" style="padding:6px 12px;font-size:13px">＋ 服を選ぶ</button></div>
+      ${(sg.locks||[]).length?`<div class="row" style="justify-content:space-between;align-items:center;margin-top:6px"><span class="muted">${sg.locks.length}着を固定。残りをルーレットで組む</span><button class="btn sec" id="unlockAll" style="padding:5px 10px;font-size:12px">固定を外す</button></div>`:""}
       <button class="btn" id="gen" style="width:100%;margin-top:14px">コーデを出す</button>
       ${!r?`<p class="muted" style="margin:8px 0 0;text-align:center">迷ったら、そのまま「コーデを出す」を押せばよい</p>`:""}
     </div>${res}
@@ -1055,7 +1086,10 @@ function renderSuggest(all){
   v.querySelectorAll("[data-favdel]").forEach(b=>b.onclick=async()=>{S.favs=S.favs.filter(x=>x.id!==b.dataset.favdel);await saveFavs();render();});
   $("#packBtn").onclick=()=>{sg.pack=packTrip(sg.packDays);render();};
   v.querySelectorAll("[data-sg]").forEach(c=>c.onchange=()=>{sg[c.dataset.sg]=c.checked;});
-  const as=$("#anchorSel");if(as)as.onchange=e=>sg.anchor=e.target.value;
+  v.querySelectorAll("[data-unlock]").forEach(e=>e.onclick=()=>{sg.locks=(sg.locks||[]).filter(x=>x!==e.dataset.unlock);render();});
+  const pl=$("#pickLocks");if(pl)pl.onclick=()=>openLockPicker(anchorOpts);
+  const ua=$("#unlockAll");if(ua)ua.onclick=()=>{sg.locks=[];render();};
+  v.querySelectorAll("[data-rlock]").forEach(e=>e.onclick=()=>{const id=e.dataset.rlock;sg.locks=sg.locks||[];sg.locks=sg.locks.includes(id)?sg.locks.filter(x=>x!==id):[...sg.locks,id];render();});
   $("#gen").onclick=()=>{sg.result=generate();render();};
   const ag=$("#again");if(ag)ag.onclick=()=>{sg.result=generate();render();};
   const w=$("#wore");if(w)w.onclick=async()=>{const ids=Object.values(sg.result.outfit).map(i=>i.id);w.disabled=true;await learn(sg.result.outfit,0.5);await recordWear(ids);sg.result=null;render();toast("着用を記録した");};
