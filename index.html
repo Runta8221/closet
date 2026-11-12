@@ -179,7 +179,8 @@ const mainsOf=i=>i&&i.colorMains&&i.colorMains.length?i.colorMains:(i&&i.colorMa
 const subsOf=i=>i&&i.colorSubs&&i.colorSubs.length?i.colorSubs:(i&&i.colorSub?[i.colorSub]:[]);
 function sw(n){return n?`<span class="sw" style="background:${colorCss(n)}"></span>${esc(n)}`:"";}
 const PHOTO_URL={};
-function imgSrc(it){return (it.photoKey&&PHOTO_URL[it.photoKey])||"";}
+function imgSrc(it){if(!it)return "";const cur=S.items[it.id]||it;const u=(cur.photoKey&&PHOTO_URL[cur.photoKey])||(it.photoKey&&PHOTO_URL[it.photoKey]);if(u)return u;
+  const m=cur.sample&&/^sample_(\d+)$/.exec(cur.id);return m?"samples/s"+String(m[1]).padStart(2,"0")+".jpg":"";}
 function ph(it){const s=imgSrc(it);if(s)return `<img src="${esc(s)}" alt="" loading="lazy">`;if(it&&it.colorMain)return `<div style="width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;background:${colorCss(it.colorMain)}"><span style="background:rgba(255,255,255,.85);color:#555;font-size:11px;padding:2px 6px;border-radius:4px;margin-bottom:6px">写真なし</span></div>`;return "写真なし";}
 
 /* ===== 端末内への保存（IndexedDB） ===== */
@@ -387,21 +388,25 @@ async function loadSamples(){const now=Date.now();
   let list;try{const r=await fetch("samples/samples.json",{cache:"no-cache"});if(!r.ok)throw new Error(r.status);list=await r.json();}
   catch(e){openSheet(`<h2>お試しの服を読み込めなかった</h2><p>お試し用の服のデータ（samples フォルダ）が見つからない。電波を確認するか、公開しているサイトに samples フォルダが入っているかを確認する。</p>`);return false;}
   toast("作った人のクローゼットを読み込み中…");let k=0,miss=0;
-  for(const a of list){let key=null;try{const r=await fetch("samples/"+a.img,{cache:"no-cache"});if(!r.ok||!(r.headers.get("content-type")||"").startsWith("image"))throw 0;key=await savePhoto(await r.blob());}catch(e){miss++;}
+  let why="";for(const a of list){let key=null;
     const id="sample_"+(k++);let lw="";if(a.ago!=null){const d=new Date(now-a.ago*86400000);lw=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
     const it={...a,id,sample:true,created:now-400*86400000+k,lastWorn:lw,...(key?{photoKey:key}:{})};delete it.ago;delete it.img;await saveItem(it);}
-  render();if(miss)setTimeout(()=>toast(`写真を${miss}枚読み込めなかった。公開の反映が終わってから、設定でお試しを消して入れ直す`),1500);return true;}
-async function repairSamples(quiet){const bad=Object.values(S.items).filter(i=>i.sample&&(!i.photoKey||!PHOTO_URL[i.photoKey]));if(!bad.length)return 0;
+  render();if(miss)setTimeout(()=>toast(`写真を${miss}枚読み込めなかった：${why}`),1500);return true;}
+async function fetchSampleImg(name){let last="";for(let k=0;k<2;k++){try{const r=await fetch("samples/"+name+"?v="+Date.now(),{cache:"reload"});if(!r.ok){last="HTTP "+r.status;continue;}
+    const b=await r.blob();if(b.size<500){last="サイズ"+b.size;continue;}return {blob:b.type?b:new Blob([b],{type:"image/jpeg"})};}catch(e){last=String(e&&e.message||e);}}return {err:last};}
+async function repairSamples(quiet){const bad=Object.values(S.items).filter(i=>i.sample&&!imgSrc(i));if(!bad.length){render();return 0;}
   let list;try{const r=await fetch("samples/samples.json",{cache:"no-cache"});if(!r.ok)return -1;list=await r.json();}catch(e){return -1;}
-  let ok=0;for(const it of bad){const a=list[+String(it.id).replace("sample_","")];if(!a||!a.img)continue;
-    try{const r=await fetch("samples/"+a.img,{cache:"no-cache"});if(!r.ok||!(r.headers.get("content-type")||"").startsWith("image"))continue;const key=await savePhoto(await r.blob());await saveItem({...it,photoKey:key});ok++;}catch(e){}}
-  if(ok&&!quiet)toast(`お試しの写真を${ok}枚読み込んだ`);render();return ok;}
+  let ok=0,why="";if(!quiet)toast("お試しの写真を読み込み中…");
+  for(const it of bad){const a=list[+String(it.id).replace("sample_","")];if(!a||!a.img)continue;
+    const f=await fetchSampleImg(a.img);if(f.err){why=f.err;continue;}try{const key=await savePhoto(f.blob);await saveItem({...it,photoKey:key});ok++;}catch(e){why="保存できない（"+(e&&e.message||e)+"）";}}
+  if(S.sug.result&&S.sug.result.outfit)for(const c in S.sug.result.outfit){const i=S.sug.result.outfit[c];if(S.items[i.id])S.sug.result.outfit[c]=S.items[i.id];}
+  render();if(ok<bad.length)toast(`お試しの写真を${bad.length-ok}枚読み込めなかった：${why}`);else if(!quiet)toast(`お試しの写真を${ok}枚読み込んだ`);return ok;}
 async function clearSamples(){for(const it of Object.values(S.items).filter(i=>i.sample))await deleteItem(it.id);
   S.log=S.log.map(l=>({...l,ids:l.ids.filter(id=>!String(id).startsWith("sample_"))})).filter(l=>l.ids.length);await saveLog();
   S.favs=S.favs.filter(f=>!Object.values(f.slots).some(id=>String(id).startsWith("sample_")));await saveFavs();S.sug.result=null;S.sug.pack=null;render();toast("お試しデータを消した");}
 function sampleBar(){const n=Object.values(S.items).filter(i=>i.sample).length;if(!n)return "";
   return `<div class="banner" style="background:#eef0f6;border-color:#cfd5e6;color:#2b3a67;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>作った人の服（${n}着）でお試し中</span><button class="btn sec" data-clearsample style="padding:5px 10px;font-size:12px;flex:none">消す</button></div>`;}
-document.addEventListener("click",e=>{if(e.target.closest("[data-clearsample]"))clearSamples();if(e.target.closest("[data-loadsample]")){loadSamples().then(ok=>{if(!ok)return;S.view="suggest";S.sug.result=generate();render();toast("作った人の服でコーデを出した。「引き直す」で別の組み合わせになる");});}
+document.addEventListener("click",e=>{if(e.target.closest("[data-clearsample]"))clearSamples();if(e.target.closest("[data-fixsample]")){repairSamples(false).then(n=>{if(n===0&&!Object.values(S.items).some(i=>i.sample&&!imgSrc(i)))toast("お試しの写真はすべて入っている");});}if(e.target.closest("[data-loadsample]")){loadSamples().then(ok=>{if(!ok)return;S.view="suggest";S.sug.result=generate();render();toast("作った人の服でコーデを出した。「引き直す」で別の組み合わせになる");});}
   if(e.target.closest("[data-addown]"))guardOwn(addMenu);});
 
 /* ===== 描画 ===== */
@@ -1204,7 +1209,7 @@ function renderRules(){
       <div class="row"><button class="btn sec" id="shareR" style="flex:1">自分のルールを共有する</button><button class="btn sec" id="pasteR" style="flex:1">コードを貼り付ける</button></div>
       ${S.borrowed.length?`<div style="margin-top:10px">${S.borrowed.map(b=>`<div class="row" style="justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(b.name)}さんのルール<span class="muted">（${esc(ruleSummary(b.rules))}）</span></span><button class="btn sec" data-delb="${b.id}" style="padding:5px 10px;font-size:12px">削除</button></div>`).join("")}<p class="muted">コーデ提案で「だれのルールで組むか」から選べる</p></div>`:""}</div>
     <div class="card"><h3>使い方</h3><div class="row"><button class="btn sec" id="obAgain" style="flex:1">使い方をもう一度見る</button>
-      ${Object.values(S.items).some(i=>i.sample)?`<button class="btn sec" data-clearsample style="flex:1">お試しデータを消す</button>`:`<button class="btn sec" data-loadsample style="flex:1">お試しデータを入れる</button>`}</div></div>
+      ${Object.values(S.items).some(i=>i.sample)?`<button class="btn sec" data-clearsample style="flex:1">お試しデータを消す</button><button class="btn sec" data-fixsample style="flex:1">お試しの写真を読み直す</button>`:`<button class="btn sec" data-loadsample style="flex:1">お試しデータを入れる</button>`}</div></div>
     <div class="card"><h3>好みの学習</h3><p class="muted" style="margin:0 0 8px">「いいね／いまいち」「これを着た」から、好きな組み合わせを覚えて提案に反映している。</p><button class="btn sec" id="resetPref">学習をリセット</button></div>
     <div class="card"><h3>シルエットの名前の付け方</h3><div class="muted">Aライン：トップス短め × ワイド・ゆったりのボトムス<br>Yライン：ゆったりのトップス × タイト・レギュラーのボトムス<br>Iライン：上下ともタイト・レギュラー</div></div>
     <div class="row" style="justify-content:flex-end"><button class="btn sec" id="resetR">初期設定に戻す</button></div>
