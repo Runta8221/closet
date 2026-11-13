@@ -379,7 +379,7 @@ const HELP={
  suggest:`<h2>コーデ提案タブ</h2><div class="guide" style="margin-top:6px"><ol><li>季節・場面を選び、含めたいもの（アウター、帽子など）をオンにする</li><li>「コーデを出す」。<b>ルール</b>モードは自分のルールと好みで、<b>ランダム</b>モードは完全にランダムで選ぶ</li><li>👍／👎で好みを教える。「☆ 保存」でお気に入りに残る</li><li>着たら「これを着た」</li><li>下の「旅行のパッキング」で旅行の持ち物も出せる</li></ol></div>`,
  log:`<h2>記録タブ</h2><div class="guide" style="margin-top:6px"><ol><li><b>あなたの傾向</b>：いいねや着用から分かった好み</li><li><b>着回し力ランキング</b>：手持ちと何通り組めるか</li><li><b>眠っている服・手放し候補</b>：しばらく着ていない服</li><li><b>着用の履歴</b>：「これを着た」の記録</li></ol></div>`,
  rules:`<h2>設定タブ</h2><div class="guide" style="margin-top:6px"><ol><li>ベーシック色と差し色の上限を決める</li><li>組み合わせのルールをオン・オフする</li><li>好みの学習をリセットできる</li><li><b>バックアップ</b>：機種変更の前に「書き出す」で保存しておく</li><li>「使い方をもう一度見る」で最初の案内が出る</li></ol></div>`};
-function showHelp(){openSheet(HELP[S.view]+`<div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn sec" id="hOb">最初の案内を見る</button><button class="btn" id="hClose">閉じる</button></div>`);
+function showHelp(){openSheet(HELP[S.view]+`<div class="row" style="margin-top:14px;justify-content:space-between"><span class="row" style="gap:8px"><a class="btn sec" href="guide.html" style="text-decoration:none">使い方ガイド（全部）</a><button class="btn sec" id="hOb">最初の案内</button></span><button class="btn" id="hClose">閉じる</button></div>`);
   $("#hClose").onclick=()=>$("#hClose").closest(".overlay").remove();$("#hOb").onclick=()=>{$("#hOb").closest(".overlay").remove();showOnboarding();};}
 $("#helpBtn").onclick=showHelp;
 
@@ -1208,7 +1208,7 @@ function renderRules(){
     <div class="card"><h3>ルールの共有</h3><p class="muted" style="margin:0 0 8px">自分の組み合わせルールと好みをリンクにして友達に渡せる。受け取った人は、あなたの目線で自分の服を組める。服や写真は渡らない。</p>
       <div class="row"><button class="btn sec" id="shareR" style="flex:1">自分のルールを共有する</button><button class="btn sec" id="pasteR" style="flex:1">コードを貼り付ける</button></div>
       ${S.borrowed.length?`<div style="margin-top:10px">${S.borrowed.map(b=>`<div class="row" style="justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(b.name)}さんのルール<span class="muted">（${esc(ruleSummary(b.rules))}）</span></span><button class="btn sec" data-delb="${b.id}" style="padding:5px 10px;font-size:12px">削除</button></div>`).join("")}<p class="muted">コーデ提案で「だれのルールで組むか」から選べる</p></div>`:""}</div>
-    <div class="card"><h3>使い方</h3><div class="row"><button class="btn sec" id="obAgain" style="flex:1">使い方をもう一度見る</button>
+    <div class="card"><h3>使い方</h3><div class="row"><button class="btn sec" id="obAgain" style="flex:1">使い方をもう一度見る</button><a class="btn sec" href="guide.html" style="flex:1;text-align:center;text-decoration:none">使い方ガイド（全部・PDF保存可）</a>
       ${Object.values(S.items).some(i=>i.sample)?`<button class="btn sec" data-clearsample style="flex:1">お試しデータを消す</button><button class="btn sec" data-fixsample style="flex:1">お試しの写真を読み直す</button>`:`<button class="btn sec" data-loadsample style="flex:1">お試しデータを入れる</button>`}</div></div>
     <div class="card"><h3>好みの学習</h3><p class="muted" style="margin:0 0 8px">「いいね／いまいち」「これを着た」から、好きな組み合わせを覚えて提案に反映している。</p><button class="btn sec" id="resetPref">学習をリセット</button></div>
     <div class="card"><h3>シルエットの名前の付け方</h3><div class="muted">Aライン：トップス短め × ワイド・ゆったりのボトムス<br>Yライン：ゆったりのトップス × タイト・レギュラーのボトムス<br>Iライン：上下ともタイト・レギュラー</div></div>

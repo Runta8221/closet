@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>クローゼット 使い方ガイド</title>
+<meta name="theme-color" content="#f6f5f2">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --bg:#f6f5f2;--paper:#fffefb;--ink:#1d1d1b;--sub:#6b6a66;--faint:#9a9893;--line:#e3e1dc;
+  --acc:#2f4a3a;--acc2:#e8efe9;
+  --serif:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.85;-webkit-text-size-adjust:100%;font-feature-settings:"palt" 1}
+a{color:inherit}
+.bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 10px) 18px 10px;background:rgba(246,245,242,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);font-size:13px}
+.bar a,.bar button{font:inherit;color:var(--ink);text-decoration:none;background:none;border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer}
+.bar button{background:var(--ink);color:#fff;border-color:var(--ink)}
+main{max-width:720px;margin:0 auto;padding:0 22px 80px}
+
+/* 表紙 */
+.cover{padding:64px 0 48px;border-bottom:1px solid var(--ink)}
+.kicker{font-size:11px;letter-spacing:.32em;color:var(--sub)}
+.cover h1{font-family:var(--serif);font-weight:600;font-size:44px;line-height:1.25;letter-spacing:.04em;margin:18px 0 6px}
+.cover .lead{font-family:var(--serif);font-size:18px;line-height:1.8;margin:22px 0 0;color:#33322f}
+.meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;font-size:12px;color:var(--sub);letter-spacing:.04em}
+.meta b{color:var(--ink);font-weight:500}
+
+/* 目次 */
+.toc{padding:34px 0;border-bottom:1px solid var(--line)}
+.toc ol{list-style:none;padding:0;margin:14px 0 0;counter-reset:t}
+.toc li{counter-increment:t;display:flex;align-items:baseline;gap:14px;padding:9px 0;border-bottom:1px dotted var(--line)}
+.toc li::before{content:counter(t,decimal-leading-zero);font-family:var(--serif);font-size:13px;color:var(--faint);width:22px}
+.toc a{text-decoration:none;flex:1}
+
+/* 3つの価値 */
+.values{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:30px 0 0}
+.values div{background:var(--paper);padding:18px 16px}
+.values .n{font-family:var(--serif);font-size:12px;color:var(--acc);letter-spacing:.14em}
+.values h4{font-family:var(--serif);font-size:16px;margin:6px 0 6px;line-height:1.5;font-weight:600}
+.values p{margin:0;font-size:13px;color:var(--sub);line-height:1.7}
+
+/* 章 */
+section{padding:52px 0 8px;border-bottom:1px solid var(--line)}
+.ch{display:flex;align-items:baseline;gap:16px;margin-bottom:6px}
+.ch .no{font-family:var(--serif);font-size:40px;line-height:1;color:var(--acc);font-weight:400}
+.ch h2{font-family:var(--serif);font-size:26px;font-weight:600;margin:0;letter-spacing:.04em}
+.ch-lead{color:var(--sub);margin:4px 0 22px;font-size:14px}
+h3{font-size:15px;font-weight:700;margin:30px 0 8px;padding-left:12px;border-left:3px solid var(--acc);line-height:1.5}
+p{margin:0 0 12px}
+.small{font-size:13px;color:var(--sub)}
+.ui{display:inline-block;font-size:.88em;padding:0 8px;border:1px solid var(--line);border-radius:999px;background:var(--paper);white-space:nowrap;line-height:1.7}
+
+/* 手順 */
+.steps{list-style:none;padding:0;margin:10px 0 16px;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 40px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:2px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:600}
+.steps li::after{content:"";position:absolute;left:12.5px;top:32px;bottom:2px;width:1px;background:var(--line)}
+.steps li:last-child::after{display:none}
+
+/* 方法カード */
+.methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 18px}
+.m{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px}
+.m .ic{font-size:20px}
+.m b{display:block;font-size:14px;margin:4px 0 2px}
+.m span{font-size:12.5px;color:var(--sub);line-height:1.65;display:block}
+
+/* 表 */
+table{width:100%;border-collapse:collapse;margin:8px 0 18px;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line);line-height:1.65}
+th{width:30%;font-weight:600;white-space:nowrap}
+thead th{font-size:11px;letter-spacing:.14em;color:var(--sub);font-weight:500;border-bottom:1px solid var(--ink)}
+td .small{display:block}
+
+.note{background:var(--acc2);border-radius:10px;padding:13px 16px;font-size:13.5px;margin:12px 0 18px;line-height:1.75}
+.note b{color:var(--acc)}
+.tip{border:1px solid var(--line);border-radius:10px;padding:13px 16px;font-size:13.5px;margin:12px 0 18px;background:var(--paper)}
+.tip::before{content:"POINT";display:block;font-size:10px;letter-spacing:.24em;color:var(--acc);font-weight:700;margin-bottom:2px}
+
+dl.faq{margin:12px 0 0}
+dl.faq dt{font-weight:700;margin-top:18px;display:flex;gap:10px}
+dl.faq dt::before{content:"Q";font-family:var(--serif);color:var(--acc);font-weight:400}
+dl.faq dd{margin:4px 0 0 22px;color:#3a3936;font-size:14px}
+
+footer{padding:40px 0 0;font-size:12px;color:var(--faint);text-align:center;letter-spacing:.06em}
+
+@media (max-width:520px){
+  .cover h1{font-size:36px}
+  .values{grid-template-columns:1fr}
+  .methods{grid-template-columns:1fr}
+  th{white-space:normal;width:34%}
+}
+@media print{
+  @page{size:A4;margin:16mm 16mm 18mm}
+  html,body{background:#fff;font-size:10.5pt;line-height:1.75}
+  .bar{display:none}
+  main{max-width:none;padding:0}
+  .cover{padding:40mm 0 18mm;page-break-after:always;border-bottom:none}
+  .cover h1{font-size:34pt}
+  .toc{page-break-after:always;border-bottom:none}
+  section{page-break-before:always;border-bottom:none;padding-top:0}
+  .m,.values div,.note,.tip,table,tr,.steps li{break-inside:avoid}
+  h3{break-after:avoid}
+  a{text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="bar"><a href="./">← アプリに戻る</a><button onclick="window.print()">PDFで保存</button></div>
+<main>
+
+<div class="cover">
+  <div class="kicker">CLOSET — USER GUIDE</div>
+  <h1>クローゼット<br>使い方ガイド</h1>
+  <p class="lead">いい服が増えたのに、着ているのはいつも同じ服。<br>手持ちの服を、ちゃんと全部着るためのアプリです。</p>
+  <div class="meta"><span>版 <b id="ver">—</b></span><span>更新 <b id="upd">—</b></span><span>対応 <b>iPhone / Android のブラウザ</b></span></div>
+  <div class="values">
+    <div><div class="n">01</div><h4>朝迷ったら<br>ボタン1つ</h4><p>自分の基準に合う組み合わせだけが出る。使うほど好みも覚える。</p></div>
+    <div><div class="n">02</div><h4>着ていない服が<br>回ってくる</h4><p>着た記録をつけるほど、最近着ていない服が出やすくなる。</p></div>
+    <div><div class="n">03</div><h4>旅行の服が<br>一度に決まる</h4><p>日数を入れると、毎日のコーデと持ち物リストが出る。</p></div>
+  </div>
+</div>
+
+<nav class="toc">
+  <div class="kicker">CONTENTS</div>
+  <ol>
+    <li><a href="#start">はじめる</a></li>
+    <li><a href="#add">服を登録する</a></li>
+    <li><a href="#suggest">コーデを出す</a></li>
+    <li><a href="#travel">旅行のパッキング</a></li>
+    <li><a href="#log">記録を見る</a></li>
+    <li><a href="#want">欲しいものを管理する</a></li>
+    <li><a href="#settings">ルールと設定</a></li>
+    <li><a href="#faq">困ったとき</a></li>
+  </ol>
+</nav>
+
+<section id="start">
+  <div class="ch"><span class="no">01</span><h2>はじめる</h2></div>
+  <p class="ch-lead">インストールもアカウント登録もいりません。ブラウザで開いて、ホーム画面に置くだけです。</p>
+
+  <h3>ホーム画面に追加する（iPhone）</h3>
+  <ol class="steps">
+    <li><b>Safari</b>でアプリのページを開きます。インスタやLINEの中で開いた場合は、右上のメニューから「Safariで開く」を選んでください。</li>
+    <li>画面下の共有ボタン（四角から矢印が出たマーク）を押します。</li>
+    <li>「ホーム画面に追加」を選び、右上の「追加」を押します。</li>
+    <li>ホーム画面にできたアイコンから開きます。以後はふつうのアプリと同じように使えます。</li>
+  </ol>
+  <div class="note"><b>大事なこと</b>　Safariで開いたときと、ホーム画面のアイコンから開いたときでは、データが別々に保存されます。服の登録はホーム画面のアイコンから始めてください。</div>
+
+  <h3>まずは作った人の服で試す</h3>
+  <p>最初の画面で<span class="ui">作った人のクローゼットで試す</span>を押すと、作者の服27着が入り、すぐにコーデが出ます。どんな提案が出るかを見てから、自分の服を登録できます。</p>
+  <p class="small">お試しの服は、手持ちタブ上部の<span class="ui">消す</span>か、設定の<span class="ui">お試しデータを消す</span>でいつでも消せます。</p>
+
+  <h3>画面の構成</h3>
+  <table>
+    <thead><tr><th>タブ</th><th>できること</th></tr></thead>
+    <tr><th>手持ち</th><td>服の一覧、登録、編集、買う前チェック、サイズ比較</td></tr>
+    <tr><th>コーデ提案</th><td>今日のコーデ、決まっている服からの組み立て、旅行のパッキング、お気に入り</td></tr>
+    <tr><th>記録</th><td>好みの傾向、着回し力ランキング、眠っている服、着用の履歴</td></tr>
+    <tr><th>欲しい</th><td>気になる服を入れて、先に買うとよい順に並べる</td></tr>
+    <tr><th>設定</th><td>組み合わせのルール、ルールの共有、バックアップ</td></tr>
+  </table>
+  <p class="small">右上の<span class="ui">？</span>を押すと、今いるタブの使い方がいつでも出ます。</p>
+</section>
+
+<section id="add">
+  <div class="ch"><span class="no">02</span><h2>服を登録する</h2></div>
+  <p class="ch-lead">全部を一度に入れる必要はありません。よく着る服から、やりやすい方法で始めてください。</p>
+
+  <h3>5つの取り込み方</h3>
+  <p>手持ちタブ右下の<span class="ui">＋ 服を登録</span>から選びます。</p>
+  <div class="methods">
+    <div class="m"><div class="ic">📷</div><b>1着ずつ撮る</b><span>服を1着撮って、枠で切り抜いて登録。いちばんていねいな方法。</span></div>
+    <div class="m"><div class="ic">🧺</div><b>並べて1枚で撮る</b><span>床やベッドに服を並べて1枚撮り、指で囲んで次々と取り込む。</span></div>
+    <div class="m"><div class="ic">🪞</div><b>今日のコーデを撮る</b><span>鏡の前で撮る。服の登録と「今日着た」の記録が同時にできる。</span></div>
+    <div class="m"><div class="ic">⌨️</div><b>文字で一気に登録</b><span>「白T、黒スラックス、デニム」と打つだけ。写真はあとからでよい。</span></div>
+    <div class="m"><div class="ic">🖼</div><b>写真をまとめて選ぶ</b><span>通販の購入履歴のスクショなど、何枚もまとめて取り込む。</span></div>
+  </div>
+  <div class="tip">写真から服のメインの色を自動で読み取ります。カテゴリなども候補が入りますが、すべてあとから手で直せます。全身写真から何着も切り出したいときは、服の詳細の<span class="ui">複製して別の服を切り出す</span>を使います。</div>
+
+  <h3>服に付けられる情報</h3>
+  <p>情報が多いほど提案の精度が上がります。分からないものは空けておいて構いません。</p>
+  <table>
+    <thead><tr><th>項目</th><th>内容</th></tr></thead>
+    <tr><th>カテゴリ</th><td>トップス、ボトムス、アウター、靴、ベルト、帽子、マフラー・ストール、靴下、バッグ、アクセサリー<span class="small">複数選べます（例：シャツジャケットをトップスとアウターの両方に）</span></td></tr>
+    <tr><th>色</th><td>メインの色とサブの色。どちらも複数選べます</td></tr>
+    <tr><th>シルエット</th><td>タイト／レギュラー／ゆったり／ワイド</td></tr>
+    <tr><th>丈</th><td>トップスは短め／普通／長め、ボトムスはショート／アンクル／フル</td></tr>
+    <tr><th>着方</th><td>1枚で着る／上に重ねる／下に着る（複数可）<span class="small">半袖シャツを「1枚で着る」と「上に重ねる」の両方にすると、単体でもレイヤードでも使われます</span></td></tr>
+    <tr><th>透け感</th><td>メッシュなど透ける服は「あり」に。インナーと組み合わせて出ます</td></tr>
+    <tr><th>テイスト</th><td>きれいめ、カジュアル、ストリート、モード、古着など（複数可）。「どれでも」はどの服とも合う扱い</td></tr>
+    <tr><th>季節</th><td>着られる季節（複数可）</td></tr>
+    <tr><th>ベルト・靴下</th><td>ベルトは素材と幅、靴下は丈（くるぶし／クルー／ハイ）</td></tr>
+    <tr><th>任意の情報</th><td>名前、ブランド、価格、購入日、メモ、実寸（cm）</td></tr>
+  </table>
+
+  <h3>服の詳細でできること</h3>
+  <p>一覧で服を押すと詳細が開きます。<span class="ui">今日これを着た</span>で着用を記録、<span class="ui">洗濯中にする</span>で一時的に提案から外す、<span class="ui">編集</span>で情報を直せます。</p>
+</section>
+
+<section id="suggest">
+  <div class="ch"><span class="no">03</span><h2>コーデを出す</h2></div>
+  <p class="ch-lead">条件を選んで<span class="ui">コーデを出す</span>。気に入らなければ<span class="ui">引き直す</span>。それだけです。</p>
+
+  <h3>2つのモード</h3>
+  <table>
+    <tr><th>ルール</th><td>自分のルール（色の数、シルエットのバランスなど）と好みに合う組み合わせだけを出します。着用回数が少ない服、最近着ていない服ほど出やすくなります。</td></tr>
+    <tr><th>ランダム</th><td>ルールを無視して完全にランダムに組みます。思いがけない組み合わせを見たいときに。</td></tr>
+  </table>
+
+  <h3>条件</h3>
+  <p><b>季節</b>と<b>場面</b>（普段・大学／おでかけ／きちんと）を選びます。場面に合わないテイストの服は外れます。アウター、帽子、マフラー、ベルト、靴下を含めるかどうかと、レイヤードするかどうかも選べます。靴下はアンクル丈・ショート丈のボトムスのときだけ出ます。</p>
+
+  <h3>決まっている服から組む</h3>
+  <p>「今日はこのパンツと靴」と決まっているときは、<span class="ui">＋ 服を選ぶ</span>から固定したい服を何着でも選びます。固定した服はそのままで、残りだけをルーレットで組みます。トップスを2枚選ぶと、上に重ねる服と下に着る服に振り分けてレイヤードにします。</p>
+  <div class="tip">出たコーデの下に並ぶ服の名前を押すと🔒が付きます。そのまま<span class="ui">引き直す</span>を押すと、🔒の服を残して他だけが入れ替わります。気に入った1着を軸に何度でも回せます。直前に出た服はなるべく避けるので、同じ組み合わせが続きにくくなっています。</div>
+
+  <h3>結果の見方</h3>
+  <table>
+    <tr><th>コーデ</th><td>服の写真をコラージュで表示</td></tr>
+    <tr><th>着画</th><td>写真を体型に当てはめた簡易イメージ</td></tr>
+    <tr><th>並べる</th><td>カテゴリ順に1着ずつ並べて表示</td></tr>
+  </table>
+  <p>コーデの上には、シルエットの名前（Iライン、Aラインなど）、差し色、未着用の服の数が出ます。</p>
+
+  <h3>結果に対してできること</h3>
+  <table>
+    <tr><th>👍 いいね／👎 いまいち</th><td>好みとして覚え、次からの提案に反映します</td></tr>
+    <tr><th>☆ 保存</th><td>お気に入りコーデに残り、あとから呼び出せます</td></tr>
+    <tr><th>これを着た</th><td>コーデ全体の着用を記録します。着用回数と最終着用日が更新されます</td></tr>
+  </table>
+  <p class="small">友達のルールを受け取っている場合は、「だれのルールで組むか」でその人の目線に切り替えられます（→07）。</p>
+</section>
+
+<section id="travel">
+  <div class="ch"><span class="no">04</span><h2>旅行のパッキング</h2></div>
+  <p class="ch-lead">少ない枚数で着回せる組み合わせを、日数分まとめて出します。</p>
+  <ol class="steps">
+    <li>コーデ提案タブの下にある「旅行のパッキング」で、日数（2〜7日）を選びます。</li>
+    <li>季節、場面、ルールは上の設定がそのまま使われます。</li>
+    <li><span class="ui">持ち物を出す</span>を押すと、毎日のコーデと、持っていく服のリストが出ます。</li>
+  </ol>
+  <div class="note">同じボトムスや靴を何日かで使い回すように組むので、全部の日に別の服を持っていくより荷物が減ります。</div>
+</section>
+
+<section id="log">
+  <div class="ch"><span class="no">05</span><h2>記録を見る</h2></div>
+  <p class="ch-lead">着るほど、自分の傾向と眠っている服が見えてきます。</p>
+  <table>
+    <tr><th>あなたの傾向</th><td>いいねや着用から分かった好み。よく選ぶライン、シルエット、丈、差し色、テイスト、重ね方と、あまり選ばないもの</td></tr>
+    <tr><th>着回し力ランキング</th><td>その服が手持ちと何通り組めるか。多いほど使える服</td></tr>
+    <tr><th>よく着る服</th><td>着用回数の多い服</td></tr>
+    <tr><th>眠っている服</th><td>しばらく着ていない服。日数は設定で変えられます</td></tr>
+    <tr><th>手放し候補</th><td>1年以上着ていない服</td></tr>
+    <tr><th>着用の履歴</th><td>「これを着た」の記録。コーデ日記として振り返れます</td></tr>
+  </table>
+</section>
+
+<section id="want">
+  <div class="ch"><span class="no">06</span><h2>欲しいものを管理する</h2></div>
+  <p class="ch-lead">買う前に、その服が手持ちとどれだけ組めるかを確かめられます。</p>
+
+  <h3>欲しいタブ</h3>
+  <p><span class="ui">欲しいものを追加</span>で、写真、価格、優先度、商品ページのURLを入れます。手持ちと何通り組めるか、価格、優先度から<b>先に買うとよい順</b>に並びます。予算を入れると、予算内で買える範囲に線が引かれます。買ったら<span class="ui">買った</span>で手持ちに移せます。</p>
+
+  <h3>買う前チェック</h3>
+  <p>手持ちタブの<span class="ui">買う前チェック</span>で、お店で見ている服の色、シルエット、カテゴリなどを入れると、手持ちと何通り組めるかを数えます。そのまま欲しいものに追加することもできます。</p>
+
+  <h3>サイズ比較</h3>
+  <p>手持ちのちょうどいい服に、サイズ感「ちょうどいい」と実寸（cm）を入れておきます。通販で気になる服の実寸を入れると、手持ちの服と比べて大きいか小さいかが分かります。</p>
+</section>
+
+<section id="settings">
+  <div class="ch"><span class="no">07</span><h2>ルールと設定</h2></div>
+  <p class="ch-lead">ルールモードの提案は、ここで決めた基準に従います。</p>
+
+  <h3>色</h3>
+  <p><b>ベーシック色</b>（黒、白、グレー、ネイビー、ベージュ、デニムなど）を決めます。それ以外の色は差し色として数え、<b>1コーデの差し色の上限</b>を超える組み合わせは出ません。</p>
+
+  <h3>組み合わせのルール</h3>
+  <table>
+    <tr><th>上下とも太い組み合わせを避ける</th><td>ゆったり・ワイド同士を組ませない</td></tr>
+    <tr><th>アウターの着丈はトップス以上</th><td>アウターの下からトップスがはみ出さない</td></tr>
+    <tr><th>テイストをそろえる</th><td>「どれでも」の服はどれとも合う扱い</td></tr>
+    <tr><th>着用回数が少ない服を優先する</th><td>最近着ていない服ほど出やすくする</td></tr>
+    <tr><th>ベルトは必ず靴と色をそろえる</th><td>オフのときは、靴と同色か差し色のどちらかを毎回選ぶ</td></tr>
+    <tr><th>ショート丈のときは靴下を見せる</th><td>クルー丈・ハイ丈の靴下だけを選ぶ</td></tr>
+    <tr><th>レイヤードでインナーの裾を見せる</th><td>インナーの着丈を、上に重ねる服以上にする</td></tr>
+    <tr><th>半袖を重ねるときは長袖のインナー</th><td>長袖のインナーがあれば優先して選ぶ</td></tr>
+    <tr><th>同じ服を続けて出さない日数</th><td>最近着た服を何日間提案から外すか</td></tr>
+    <tr><th>眠っている服とみなす日数</th><td>記録タブの「眠っている服」の基準</td></tr>
+  </table>
+  <p class="small">固定した服どうしがルールに当たるときは、そのルールだけを外して組み、コーデの下にその旨を表示します。</p>
+
+  <h3>シルエットの名前</h3>
+  <table>
+    <tr><th>Aライン</th><td>短めのトップス × ワイド・ゆったりのボトムス</td></tr>
+    <tr><th>Yライン</th><td>ゆったりのトップス × タイト・レギュラーのボトムス</td></tr>
+    <tr><th>Iライン</th><td>上下ともタイト・レギュラー</td></tr>
+  </table>
+
+  <h3>ルールの共有</h3>
+  <p><span class="ui">自分のルールを共有する</span>で、自分の組み合わせルールと好みをリンクにして友達に渡せます。受け取った人は、あなたの目線で自分の服を組めます。<b>服や写真は渡りません。</b>リンクを開けない場合は、<span class="ui">コードを貼り付ける</span>から読み込めます。</p>
+
+  <h3>好みの学習</h3>
+  <p>いいね、いまいち、着用から覚えた好みは、設定からリセットできます。</p>
+
+  <h3>バックアップ</h3>
+  <p>データはこのスマホの中だけにあります。機種変更の前や、ときどき<span class="ui">書き出す</span>でファイルを保存し、ファイルアプリやiCloudに置いておいてください。新しい端末では<span class="ui">読み込む</span>で戻せます。</p>
+</section>
+
+<section id="faq">
+  <div class="ch"><span class="no">08</span><h2>困ったとき</h2></div>
+  <dl class="faq">
+    <dt>登録した服が消えた</dt>
+    <dd>Safariで開いたときと、ホーム画面のアイコンから開いたときでは、データが別々です。いつも同じ方から開いてください。プライベートブラウズでは、閉じるとデータが消えます。</dd>
+    <dt>インスタやLINEから開いたらホーム画面に追加できない</dt>
+    <dd>アプリ内のブラウザでは追加できず、データも残りません。右上のメニューから「Safariで開く」を選んでください。</dd>
+    <dt>同じような服ばかり出る</dt>
+    <dd>ルールが厳しいと、条件に合う服が少なくなります。設定でルールをいくつかオフにするか、ランダムモードを試してください。服の「着方」「テイスト」が実際と合っているかも確認してください。</dd>
+    <dt>コーデが出ない</dt>
+    <dd>選んだ季節に着られるトップスとボトムスが、それぞれ1着以上必要です。画面に出る理由（例：上下とも太い）を手がかりに、ルールを緩めてください。</dd>
+    <dt>服の情報は外に送られる？</dt>
+    <dd>送られません。服も写真も記録も、すべてこのスマホの中だけに保存されます。アカウントもありません。</dd>
+    <dt>アプリを新しくするには</dt>
+    <dd>特別な操作はいりません。電波のあるところで開くと、自動で最新版になります。このガイドも同時に更新されます。</dd>
+  </dl>
+</section>
+
+<footer>クローゼット 使い方ガイド　<span id="ver2"></span></footer>
+</main>
+<script>
+// アプリの版と更新日を、公開中のファイルから自動で読む
+fetch("sw.js",{cache:"no-cache"}).then(r=>r.text()).then(t=>{const m=t.match(/closet-v(\d+)/);if(m){document.getElementById("ver").textContent="v"+m[1];document.getElementById("ver2").textContent="v"+m[1];}}).catch(()=>{});
+(function(){const d=new Date(document.lastModified);if(!isNaN(d)){document.getElementById("upd").textContent=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";}})();
+</script>
+</body>
+</html>
