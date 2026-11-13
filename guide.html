@@ -132,6 +132,7 @@ footer{padding:40px 0 0;font-size:12px;color:var(--faint);text-align:center;lett
     <li><a href="#suggest">コーデを出す</a></li>
     <li><a href="#travel">旅行のパッキング</a></li>
     <li><a href="#log">記録を見る</a></li>
+    <li><a href="#sell">着なくなった服を出品する</a></li>
     <li><a href="#want">欲しいものを管理する</a></li>
     <li><a href="#settings">ルールと設定</a></li>
     <li><a href="#faq">困ったとき</a></li>
@@ -240,7 +241,7 @@ footer{padding:40px 0 0;font-size:12px;color:var(--faint);text-align:center;lett
     <tr><th>☆ 保存</th><td>お気に入りコーデに残り、あとから呼び出せます</td></tr>
     <tr><th>これを着た</th><td>コーデ全体の着用を記録します。着用回数と最終着用日が更新されます</td></tr>
   </table>
-  <p class="small">友達のルールを受け取っている場合は、「だれのルールで組むか」でその人の目線に切り替えられます（→07）。</p>
+  <p class="small">友達のルールを受け取っている場合は、「だれのルールで組むか」でその人の目線に切り替えられます（→08）。</p>
 </section>
 
 <section id="travel">
@@ -267,8 +268,29 @@ footer{padding:40px 0 0;font-size:12px;color:var(--faint);text-align:center;lett
   </table>
 </section>
 
+<section id="sell">
+  <div class="ch"><span class="no">06</span><h2>着なくなった服を出品する</h2></div>
+  <p class="ch-lead">着なくなった服をメルカリなどに出すときの準備を、登録してある情報で短くします。売買そのものはフリマアプリの中で行います。</p>
+  <ol class="steps">
+    <li>服の詳細で<span class="ui">🏷 出品する</span>を押します。記録タブの「手放し候補（1年以上着ていない）」からも開けます。</li>
+    <li><b>出品文</b>：状態、表記サイズ、ひとことを選ぶと、ブランド、色、実寸などから説明文とハッシュタグを自動で作ります。<span class="ui">タイトルをコピー</span><span class="ui">説明文をコピー</span>で、フリマアプリに貼り付けます。</li>
+    <li><b>相場</b>：<span class="ui">売れた値段を見る</span>で、メルカリの売り切れの検索結果を開きます。実際に売れた値段を見て価格を決めます。</li>
+    <li>出品したら、出品先と価格を入れて<span class="ui">出品した</span>を押します。出品中の服はコーデ提案から外れます。</li>
+    <li>売れたら<span class="ui">売れたとして記録</span>。売れた価格、手数料（%）、送料、梱包費を入れると、手元に残る額を計算します。値下げや取り下げもここから記録できます。</li>
+  </ol>
+  <h3>出品の記録</h3>
+  <p>記録タブの「出品の記録」に、次の数字がまとまります。<span class="ui">記録をCSVで書き出す</span>で表計算アプリに持ち出せます。</p>
+  <table>
+    <tr><th>出品した・売れた</th><td>出品件数、売れた件数、販売率</td></tr>
+    <tr><th>販売までの日数</th><td>出品した日から売れた日までの平均</td></tr>
+    <tr><th>金額</th><td>売れた額の合計と、手数料・送料・梱包費を引いて手元に残った額</td></tr>
+    <tr><th>準備時間</th><td>出品画面を開いてから「出品した」を押すまでの時間を自動で計測。準備1時間あたりの手取りも出ます</td></tr>
+  </table>
+  <div class="note">写真をAIに送って値段を決める機能はありません。写真はスマホの外に出さず、値付けはフリマアプリで実際に売れた値段を見て決める方針です。</div>
+</section>
+
 <section id="want">
-  <div class="ch"><span class="no">06</span><h2>欲しいものを管理する</h2></div>
+  <div class="ch"><span class="no">07</span><h2>欲しいものを管理する</h2></div>
   <p class="ch-lead">買う前に、その服が手持ちとどれだけ組めるかを確かめられます。</p>
 
   <h3>欲しいタブ</h3>
@@ -282,7 +304,7 @@ footer{padding:40px 0 0;font-size:12px;color:var(--faint);text-align:center;lett
 </section>
 
 <section id="settings">
-  <div class="ch"><span class="no">07</span><h2>ルールと設定</h2></div>
+  <div class="ch"><span class="no">08</span><h2>ルールと設定</h2></div>
   <p class="ch-lead">ルールモードの提案は、ここで決めた基準に従います。</p>
 
   <h3>色</h3>
@@ -321,7 +343,7 @@ footer{padding:40px 0 0;font-size:12px;color:var(--faint);text-align:center;lett
 </section>
 
 <section id="faq">
-  <div class="ch"><span class="no">08</span><h2>困ったとき</h2></div>
+  <div class="ch"><span class="no">09</span><h2>困ったとき</h2></div>
   <dl class="faq">
     <dt>登録した服が消えた</dt>
     <dd>Safariで開いたときと、ホーム画面のアイコンから開いたときでは、データが別々です。いつも同じ方から開いてください。プライベートブラウズでは、閉じるとデータが消えます。</dd>
