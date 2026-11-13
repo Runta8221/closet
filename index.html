@@ -327,12 +327,12 @@ const isStandalone=()=>window.matchMedia("(display-mode: standalone)").matches||
 let deferredInstall=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;});
 const SHARE_ICON=`<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-5px"><path d="M12 3v12M7 8l5-5 5 5" fill="none" stroke="#2f6fde" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11H5v10h14V11h-1" fill="none" stroke="#2f6fde" stroke-width="2" stroke-linejoin="round"/></svg>`;
 function installStepsHTML(){const url=location.origin+location.pathname;
-  if(IN_APP)return `<p>今はインスタやLINEの中で開いています。この中では<b>ホーム画面に追加できず、データも残りません</b>。Safariで開き直してください。</p>
+  if(IN_APP)return `<p>今はインスタやLINEの中で開いています。この中では<b>ホーム画面に追加できず、データも残りません</b>。${IS_IOS?"Safari":"Chrome"}で開き直してください。</p>
     <div class="step"><b>インスタ</b>：右上の「…」→「外部ブラウザで開く」</div>
     <div class="step"><b>LINE</b>：メニュー →「${IS_IOS?"Safari":"ブラウザ"}で開く」</div>
     <div class="step">開けなければ、URLをコピーして${IS_IOS?"Safari":"Chrome"}に貼り付ける</div>
     <button class="btn sec" data-copyurl style="width:100%;margin-top:6px">URLをコピー</button>
-    <p class="muted" style="margin-top:10px">Safariで開いたら、共有ボタン ${SHARE_ICON} →「ホーム画面に追加」でアプリになります。</p>`;
+    <p class="muted" style="margin-top:10px">${IS_IOS?`Safariで開いたら、共有ボタン ${SHARE_ICON} →「ホーム画面に追加」でアプリになります。`:"Chromeで開いたら、右上のメニュー（︙）→「ホーム画面に追加」でアプリになります。"}</p>`;
   if(IS_IOS)return `<p>自分の服を入れる前に、ホーム画面に追加してください。<b>Safariのままだと、追加したアプリにデータが引き継がれません。</b></p>
     <div class="step"><b>1.</b> 共有ボタン ${SHARE_ICON} を押す</div>
     <div class="step"><b>2.</b> 下にスクロールして「<b>ホーム画面に追加</b>」</div>
