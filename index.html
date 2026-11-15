@@ -26,10 +26,22 @@ header{padding-top:env(safe-area-inset-top);position:sticky;top:0;z-index:5;back
 .top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px}
 .top h1{font-size:18px;margin:0;letter-spacing:.04em}
 .top .cnt{font-size:12px;color:var(--sub)}
-nav{display:flex;gap:4px;padding:0 10px 8px;overflow-x:auto}
-nav button{flex:1;min-width:60px;border:0;background:transparent;padding:8px 6px;border-radius:8px;font-size:14px;color:var(--sub);cursor:pointer}
-nav button.on{background:var(--ink);color:#fff}
-main{padding:14px 14px calc(90px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:8;display:flex;background:rgba(246,245,242,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+nav button{flex:1;min-width:0;border:0;background:transparent;padding:6px 1px 4px;font-size:10.5px;white-space:nowrap;letter-spacing:-.02em;color:var(--sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent}
+nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--ink);font-weight:600}
+nav button.on svg{stroke-width:2.2}
+.seg{display:flex;background:#e9e7e2;border-radius:10px;padding:3px;gap:3px}
+.seg span{flex:1;text-align:center;padding:7px 4px;border-radius:8px;font-size:14px;color:var(--sub);cursor:pointer}
+.seg span.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+details.cond{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
+details.cond>summary{list-style:none;padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+details.cond>summary::-webkit-details-marker{display:none}
+details.cond>summary .sum{color:var(--sub);font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.cond>div{padding:0 14px 14px}
+main{padding:14px 14px calc(130px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+.sumline{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:12px;cursor:pointer}
+.sumline span{color:var(--acc);white-space:nowrap}
 .banner{background:#fff4e5;border:1px solid #f0d8b0;color:#7a5410;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:12px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;user-select:none}
@@ -48,7 +60,7 @@ main{padding:14px 14px calc(90px + env(safe-area-inset-bottom));max-width:760px;
 .btn.acc{background:var(--acc)}
 .btn.del{background:#fff;color:var(--warn);border:1px solid #e7c3bd}
 .btn:disabled{opacity:.5}
-.fab{position:fixed;right:18px;bottom:calc(22px + env(safe-area-inset-bottom));z-index:6;border-radius:999px;padding:14px 20px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:6;border-radius:999px;padding:14px 20px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
 .card h3{margin:0 0 8px;font-size:15px}
 label.f{display:block;font-size:12px;color:var(--sub);margin:12px 0 5px}
@@ -82,7 +94,7 @@ textarea{min-height:60px}
 .sw-toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);gap:12px}
 .sw-toggle:last-child{border-bottom:0}
 .sw-toggle small{display:block;color:var(--sub);font-size:12px}
-.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 .empty{text-align:center;padding:40px 10px;color:var(--sub)}
 .fig{position:relative;width:240px;height:480px;margin:0 auto}
@@ -125,11 +137,11 @@ textarea{min-height:60px}
 <header>
   <div class="top"><h1>クローゼット</h1><span class="row" style="gap:10px;align-items:center"><span class="cnt" id="cnt"></span><button id="helpBtn" class="btn sec" style="padding:4px 11px;font-size:14px;border-radius:999px">？</button></span></div>
   <nav id="nav">
-    <button data-v="closet" class="on">手持ち</button>
-    <button data-v="suggest">コーデ提案</button>
-    <button data-v="log">記録</button>
-    <button data-v="want">欲しい</button>
-    <button data-v="rules">設定</button>
+    <button data-v="suggest"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>コーデを組む</button>
+    <button data-v="closet"><svg viewBox="0 0 24 24"><path d="M12 6a2 2 0 1 1 2 2c-1 .4-2 1-2 2"/><path d="M12 10L3 17h18z"/></svg>クローゼット</button>
+    <button data-v="sell"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg>出品</button>
+    <button data-v="want"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>欲しい服</button>
+    <button data-v="rules"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>設定</button>
   </nav>
 </header>
 <main>
@@ -137,6 +149,7 @@ textarea{min-height:60px}
   <section id="v-closet"></section>
   <section id="v-suggest" class="hide"></section>
   <section id="v-log" class="hide"></section>
+  <section id="v-sell" class="hide"></section>
   <section id="v-want" class="hide"></section>
   <section id="v-rules" class="hide"></section>
 </main>
@@ -223,6 +236,7 @@ async function init(){
   for(const k in photos)PHOTO_URL[k]=URL.createObjectURL(photos[k]);
   S.items=items||{};for(const id in S.items){if(S.items[id].cat==="小物"){S.items[id].cat="アクセサリー";idbPut("items",id,S.items[id]).catch(()=>{});}}
   S.rules={...DEFAULT_RULES,...(rules||{})};S.log=Array.isArray(log)?log:[];
+  {const its=Object.values(S.items);if(its.some(i=>inCat(i,"トップス"))&&its.some(i=>inCat(i,"ボトムス")))S.view="suggest";}
   render();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
   if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js");}catch(e){}}
@@ -382,10 +396,11 @@ function showOnboarding(){let i=0;const ov=document.createElement("div");ov.clas
     if(dx<-50&&i<OB_PAGES.length-1){i++;draw();}else if(dx>50&&i>0){i--;draw();}});
   draw();}
 const HELP={
- want:`<h2>欲しいタブ</h2><div class="guide" style="margin-top:6px"><ol><li>気になる服を「欲しいものを追加」で入れる（写真・価格・優先度）</li><li>手持ちと何通り組めるか、価格、優先度から、<b>先に買うとよい順</b>に並ぶ</li><li>予算を入れると、予算内で買える範囲に線が引かれる</li><li>買ったら「買った」で手持ちに移す</li></ol></div>`,
- closet:`<h2>手持ちタブ</h2><div class="guide" style="margin-top:6px"><ol><li>右下「＋ 服を登録」→ 写真 → 枠で切り抜き → 属性を選んで保存</li><li>服をタップすると詳細。「今日これを着た」「洗濯中にする」「編集」ができる</li><li>「まとめて登録」：写真を何枚も選んで一度に登録。属性はあとで入れる</li><li>「買う前チェック」：気になる服が手持ちと何通り組めるかを数える</li></ol></div>`,
- suggest:`<h2>コーデ提案タブ</h2><div class="guide" style="margin-top:6px"><ol><li>季節・場面を選び、含めたいもの（アウター、帽子など）をオンにする</li><li>「コーデを出す」。<b>ルール</b>モードは自分のルールと好みで、<b>ランダム</b>モードは完全にランダムで選ぶ</li><li>👍／👎で好みを教える。「☆ 保存」でお気に入りに残る</li><li>着たら「これを着た」</li><li>下の「旅行のパッキング」で旅行の持ち物も出せる</li></ol></div>`,
- log:`<h2>記録タブ</h2><div class="guide" style="margin-top:6px"><ol><li><b>あなたの傾向</b>：いいねや着用から分かった好み</li><li><b>着回し力ランキング</b>：手持ちと何通り組めるか</li><li><b>眠っている服・手放し候補</b>：しばらく着ていない服</li><li><b>着用の履歴</b>：「これを着た」の記録</li></ol></div>`,
+ want:`<h2>欲しい服</h2><div class="guide" style="margin-top:6px"><ol><li>気になる服を「欲しいものを追加」で入れる（写真・価格・優先度）</li><li>手持ちと何通り組めるか、価格、優先度から、<b>先に買うとよい順</b>に並ぶ</li><li>予算を入れると、予算内で買える範囲に線が引かれる</li><li>買ったら「買った」で手持ちに移す</li></ol></div>`,
+ closet:`<h2>クローゼット（一覧）</h2><div class="guide" style="margin-top:6px"><ol><li>右下「＋ 服を登録」→ 写真 → 枠で切り抜き → 属性を選んで保存</li><li>服をタップすると詳細。「今日これを着た」「洗濯中にする」「編集」ができる</li><li>「まとめて登録」：写真を何枚も選んで一度に登録。属性はあとで入れる</li><li>「買う前チェック」：気になる服が手持ちと何通り組めるかを数える</li></ol></div>`,
+ suggest:`<h2>コーデを組む</h2><div class="guide" style="margin-top:6px"><ol><li>開くと、もうコーデが出ている。気に入らなければ「引き直す」、着るなら「これを着た」</li><li>服の名前を押して🔒を付けると、その服を残して残りだけ引き直せる</li><li>季節・場面・差し色の位置などは「条件　変える」から</li><li>一番上の切り替えで「ルール／ランダム／旅行」。旅行は日数を選んで持ち物を出す</li></ol></div>`,
+ log:`<h2>クローゼット（ふり返り）</h2><div class="guide" style="margin-top:6px"><ol><li><b>あなたの傾向</b>：いいねや着用から分かった好み</li><li><b>着回し力ランキング</b>：手持ちと何通り組めるか</li><li><b>眠っている服・手放し候補</b>：しばらく着ていない服</li><li><b>着用の履歴</b>：「これを着た」の記録</li></ol></div>`,
+ sell:`<h2>出品</h2><div class="guide" style="margin-top:6px"><ol><li>「手放し候補」や「＋ 服を選んで出品」から服を選ぶ</li><li>出品文をコピーしてフリマアプリに貼り、「売れた値段を見る」で相場を確かめる</li><li>出品したら価格を入れて「出品した」。出品中の服はコーデから外れる</li><li>売れたら出品中の服を押して「売れたとして記録」。手取りを自動で計算する</li><li>30日売れない服には「値下げどき」と出る</li></ol></div>`,
  rules:`<h2>設定タブ</h2><div class="guide" style="margin-top:6px"><ol><li>ベーシック色と差し色の上限を決める</li><li>組み合わせのルールをオン・オフする</li><li>好みの学習をリセットできる</li><li><b>バックアップ</b>：機種変更の前に「書き出す」で保存しておく</li><li>「使い方をもう一度見る」で最初の案内が出る</li></ol></div>`};
 function showHelp(){openSheet(HELP[S.view]+`<div class="row" style="margin-top:14px;justify-content:space-between"><span class="row" style="gap:8px"><a class="btn sec" href="guide.html" style="text-decoration:none">使い方ガイド（全部）</a><button class="btn sec" id="hOb">最初の案内</button></span><button class="btn" id="hClose">閉じる</button></div>`);
   $("#hClose").onclick=()=>$("#hClose").closest(".overlay").remove();$("#hOb").onclick=()=>{$("#hOb").closest(".overlay").remove();showOnboarding();};}
@@ -418,20 +433,24 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-clearsample]"))
   if(e.target.closest("[data-addown]"))guardOwn(addMenu);});
 
 /* ===== 描画 ===== */
-const BUILD="v32";
+const BUILD="v37";
 function render(){
   const all=Object.values(S.items).filter(i=>!isSold(i));
   $("#cnt").textContent=all.length+"着";
-  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===S.view));
-  ["closet","suggest","log","want","rules"].forEach(v=>$("#v-"+v).classList.toggle("hide",v!==S.view));
+  const navV=S.view==="log"?"closet":S.view;
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===navV));
+  ["closet","suggest","log","sell","want","rules"].forEach(v=>$("#v-"+v).classList.toggle("hide",v!==S.view));
   $("#fab").classList.toggle("hide",S.view!=="closet");
   if(S.view==="closet")renderCloset(all);
   if(S.view==="suggest")renderSuggest(all);
   if(S.view==="log")renderLog(all);
   if(S.view==="rules")renderRules();
   if(S.view==="want")renderWant();
+  if(S.view==="sell")renderSell();
+  document.querySelectorAll("[data-cseg] span").forEach(e=>e.onclick=()=>{const v=e.dataset.to;if(v===S.view)return;S.view=v;S.closetSeg=v;render();window.scrollTo(0,0);});
 }
-$("#nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.view=b.dataset.v;render();window.scrollTo(0,0);};
+const closetSeg=()=>`<div class="seg" data-cseg style="margin-bottom:12px"><span data-to="closet" class="${S.view==="closet"?"on":""}">一覧</span><span data-to="log" class="${S.view==="log"?"on":""}">ふり返り</span></div>`;
+$("#nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;let v=b.dataset.v;if(v==="closet")v=(S.view==="closet"||S.view==="log")?S.view:(S.closetSeg||"closet");S.view=v;render();window.scrollTo(0,0);};
 
 function renderCloset(all){
   const f=S.filter;const sleepIds=new Set(sleepingItems(S.rules.sleepDays||90).map(i=>i.id));
@@ -442,11 +461,13 @@ function renderCloset(all){
   const unset=all.filter(i=>!i.cat).length;
   const chips=["すべて",...CATS,...(unset?["未設定"]:[]),...(sleepIds.size?["眠っている"]:[]),...(all.some(i=>i.washing)?["洗濯中"]:[]),...(all.some(isListed)?["出品中"]:[])].map(c=>`<span class="chip ${c===f?"on":""}" data-f="${c}">${c}</span>`).join("");
   const never=all.filter(i=>!i.wear).length;
+  const mCount=S.log.filter(l=>l.date&&l.date.startsWith(today().slice(0,7))).length;
   $("#v-closet").innerHTML=`
     ${sampleBar()}
+    ${closetSeg()}
+    ${all.length?`<div class="sumline" id="toLog">${all.length}着・未着用 ${never}・今月 ${mCount}回${sleepIds.size?`・眠っている ${sleepIds.size}`:""}<span>ふり返り ›</span></div>`:""}
     ${!all.length?`<div class="guide"><b>はじめに</b><ol><li>右下の「＋ 服を登録」を押し、取り込み方を選ぶ（文字で打つだけでもよい）</li><li>写真なら、枠で服だけを囲んで切り抜く</li><li>カテゴリなどを選んで保存。まずは<b>トップス・ボトムス・靴</b>を1着ずつ</li><li>「コーデ提案」タブで「コーデを出す」</li></ol>
       <div class="row"><button class="btn acc" data-loadsample style="flex:1">作った人の服で試す</button><button class="btn sec" data-addown style="flex:1">服を登録する</button></div></div>`:""}
-    ${sleepIds.size&&f!=="眠っている"?`<div class="banner" id="sleepBanner" style="cursor:pointer">${S.rules.sleepDays||90}日以上着ていない服が${sleepIds.size}着ある。タップで一覧。コーデ提案では優先して出す。</div>`:""}
     ${unset?`<div class="banner" style="background:#eef3ef;border-color:#cfdcd2;color:var(--acc)">カテゴリ未設定の服が${unset}着ある。タップして属性を入れると、コーデ提案に出るようになる。</div>`:""}
     <div class="row">${chips}</div>
     <div class="row" style="margin-top:10px;justify-content:space-between">
@@ -465,7 +486,7 @@ function renderCloset(all){
   $("#sortSel").value=S.sort;
   $("#sortSel").onchange=e=>{S.sort=e.target.value;render();};
   $("#bulkBtn").onclick=bulkAdd;$("#buyBtn").onclick=buyCheck;$("#sizeBtn").onclick=()=>sizeCompare();
-  const sb=$("#sleepBanner");if(sb)sb.onclick=()=>{S.filter="眠っている";render();};
+  const tl=$("#toLog");if(tl)tl.onclick=()=>{S.view="log";S.closetSeg="log";render();window.scrollTo(0,0);};
   $("#v-closet").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{S.filter=c.dataset.f;render();});
   $("#v-closet").querySelectorAll(".item").forEach(c=>c.onclick=()=>openDetail(c.dataset.id));
 }
@@ -906,7 +927,9 @@ function sellNet(s){const p=Number(s.soldPrice)||0;return p-Math.floor(p*(Number
 function daysBetween(a,b){if(!a||!b)return null;const p=d=>{const[y,m,dd]=d.split("-").map(Number);return new Date(y,m-1,dd);};return Math.round((p(b)-p(a))/86400000);}
 
 function openSell(id){const it0=S.items[id];if(!it0)return;const s={cond:"目立った傷や汚れなし",sizeLabel:"",note:"",platform:"メルカリ",...(it0.sell||{})};
-  const t0=Date.now();let edited=!!(it0.sell&&it0.sell.body);
+  let act=0,last=Date.now();const GAP=60000;const tick=()=>{const n=Date.now();if(document.visibilityState==="visible")act+=Math.min(n-last,GAP);last=n;};
+  const onVis=()=>{if(document.visibilityState==="hidden")tick();else last=Date.now();};document.addEventListener("visibilitychange",onVis);
+  let edited=!!(it0.sell&&it0.sell.body);
   const st=s.status;
   const o=openSheet(`
     <div class="row" style="gap:12px;align-items:center"><div class="ph" style="width:72px;height:72px;border-radius:10px;overflow:hidden;flex:none">${ph(it0)}</div>
@@ -929,7 +952,7 @@ function openSell(id){const it0=S.items[id];if(!it0)return;const s={cond:"目立
     <label class="f">出品先</label>${chipGroup("plat",PLATFORMS.map(p=>p[0]),s.platform)}
     <label class="f">出品価格（円）</label><input type="number" inputmode="numeric" id="slPrice" value="${s.listPrice||""}">
     <button class="btn acc" id="slDone" style="width:100%;margin-top:12px">出品した</button>
-    <div class="muted" style="margin-top:6px">出品中の服はコーデ提案から外れる。準備にかかった時間も自動で記録する</div>`:""}
+    <div class="muted" style="margin-top:6px">出品中の服はコーデ提案から外れる。準備時間は画面を操作している間だけを数える（1分以上手が止まった分、アプリを閉じていた間は数えない）。途中でやめても、続きの時間は足し算される</div>`:""}
     ${st==="listed"?`
     <h3 style="margin-top:18px">3. 値下げ・売れた</h3>
     <div class="row" style="gap:8px;align-items:flex-end"><div style="flex:1"><label class="f">価格を変える（円）</label><input type="number" inputmode="numeric" id="slNewP" value="${s.listPrice||""}"></div><button class="btn sec" id="slPriceUp">変える</button></div>
@@ -940,9 +963,12 @@ function openSell(id){const it0=S.items[id];if(!it0)return;const s={cond:"目立
       <label class="f">梱包費（円）</label><input type="number" inputmode="numeric" id="sdPack" value="0">
       <div id="sdNet" style="margin-top:10px;font-weight:600"></div>
       <button class="btn acc" id="sdDone" style="width:100%;margin-top:10px">売れたとして記録</button></div>
-    <button class="btn sec" id="slWd" style="width:100%;margin-top:10px">出品を取り下げる（手持ちに戻す）</button>`:""}
+    <button class="btn sec" id="slWd" style="width:100%;margin-top:10px">出品を取り下げる（手持ちに戻す）</button>
+    <div class="row" style="gap:8px;align-items:flex-end;margin-top:12px"><div style="flex:1"><label class="f">出品準備にかかった時間（分）・自動計測を直せる</label><input type="number" inputmode="decimal" id="slPrep" value="${Math.round((s.prepSec||0)/6)/10}"></div><button class="btn sec" id="slPrepUp">直す</button></div>`:""}
     ${st==="sold"?`<div class="card" style="margin-top:14px">${[["出品先",s.platform],["出品日",s.listedAt],["売れた日",s.soldAt],["販売までの日数",(daysBetween(s.listedAt,s.soldAt)??"—")+"日"],["売れた価格",yen(s.soldPrice)],["手数料",yen(Math.floor((s.soldPrice||0)*(s.feeRate||0)/100))+`（${s.feeRate}%）`],["送料",yen(s.ship)],["梱包費",yen(s.pack)],["手元に残った額",yen(sellNet(s))],["準備にかかった時間",Math.round((s.prepSec||0)/60)+"分"]].map(r=>`<div class="row" style="justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)"><span class="muted">${r[0]}</span><span>${esc(String(r[1]??""))}</span></div>`).join("")}</div>
+    <div class="row" style="gap:8px;align-items:flex-end;margin-top:12px"><div style="flex:1"><label class="f">出品準備にかかった時間（分）を直す</label><input type="number" inputmode="decimal" id="slPrep" value="${Math.round((s.prepSec||0)/6)/10}"></div><button class="btn sec" id="slPrepUp">直す</button></div>
     <button class="btn sec" id="sdUndo" style="width:100%;margin-top:10px">「売れた」を取り消す</button>`:""}`);
+  {const rm=o.remove.bind(o);o.remove=()=>{document.removeEventListener("visibilitychange",onVis);rm();};}
   const q=x=>o.querySelector(x);
   const cur=()=>({...s,cond:readGroup(o,"cond")||s.cond,sizeLabel:(q("#slSize")||{}).value??s.sizeLabel,note:(q("#slNote")||{}).value??s.note});
   const regen=()=>{const b=q("#slBody");if(b)b.value=sellBody(it0,cur());};
@@ -953,7 +979,8 @@ function openSell(id){const it0=S.items[id];if(!it0)return;const s={cond:"目立
   if(q("#regen"))q("#regen").onclick=()=>{edited=false;regen();};
   if(q("#cpT"))q("#cpT").onclick=()=>copyText(q("#slTitle").value);
   if(q("#cpB"))q("#cpB").onclick=()=>copyText(q("#slBody").value);
-  const keep=()=>{const c=cur();return {...c,title:q("#slTitle")?q("#slTitle").value:c.title,body:q("#slBody")&&edited?q("#slBody").value:(c.body||""),prepSec:(s.prepSec||0)+Math.round((Date.now()-t0)/1000)};};
+  const keep=()=>{const c=cur();return {...c,title:q("#slTitle")?q("#slTitle").value:c.title,body:q("#slBody")&&edited?q("#slBody").value:(c.body||""),prepSec:(s.prepSec||0)+(tick(),Math.round(act/1000))};};
+  ["pointerdown","input","scroll"].forEach(t=>o.addEventListener(t,tick,{capture:true,passive:true}));
   const save=async ns=>{await saveItem({...S.items[id],sell:ns});};
   const netUI=()=>{const e=q("#sdNet");if(!e)return;const n=sellNet({soldPrice:q("#sdPrice").value,feeRate:q("#sdFee").value,ship:q("#sdShip").value,pack:q("#sdPack").value});e.textContent="手元に残る額："+yen(n);};
   ["#sdPrice","#sdFee","#sdShip","#sdPack"].forEach(x=>{const e=q(x);if(e)e.oninput=netUI;});netUI();
@@ -963,6 +990,7 @@ function openSell(id){const it0=S.items[id];if(!it0)return;const s={cond:"目立
   if(q("#sdDone"))q("#sdDone").onclick=async()=>{const p=Number(q("#sdPrice").value);if(!p){toast("売れた価格を入れる");return;}
     const k=keep();await save({...k,status:"sold",soldAt:today(),soldPrice:p,feeRate:Number(q("#sdFee").value)||0,ship:Number(q("#sdShip").value)||0,pack:Number(q("#sdPack").value)||0});o.remove();render();toast("売れたとして記録した");};
   if(q("#slWd"))q("#slWd").onclick=async()=>{const k=keep();await save({...k,status:"withdrawn",withdrawnAt:today()});o.remove();render();toast("手持ちに戻した");};
+  if(q("#slPrepUp"))q("#slPrepUp").onclick=async()=>{const m=Number(q("#slPrep").value);if(isNaN(m)||m<0)return;await save({...S.items[id].sell,prepSec:Math.round(m*60),prepManual:true});o.remove();render();toast("準備時間を直した");};
   if(q("#sdUndo"))q("#sdUndo").onclick=async()=>{await save({...s,status:"listed",soldAt:"",soldPrice:null});o.remove();render();toast("出品中に戻した");};
   // 閉じたときも準備時間と入力を残す
   o.addEventListener("closed",async()=>{if(st==="sold"||!S.items[id])return;const now=S.items[id].sell||{};if(now.status!==st)return;const k=keep();await saveItem({...S.items[id],sell:{...now,...k,status:st}});});
@@ -981,6 +1009,29 @@ function sellHTML(){const s=sellStats();if(!s.n)return "";
     ${[["売れた額の合計",yen(s.gross)],["手元に残った額（手数料・送料・梱包費を引いた額）",yen(s.net)],["出品準備の平均時間",s.prepMin!=null?s.prepMin+"分":"—"],["準備1時間あたりの手取り",hourly?yen(hourly):"—"]].map(r=>`<div class="row" style="justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)"><span class="muted">${r[0]}</span><span>${r[1]}</span></div>`).join("")}
     <div style="margin-top:10px">${s.its.sort((a,b)=>(b.sell.listedAt||"").localeCompare(a.sell.listedAt||"")).map(i=>`<div class="row" data-sell="${i.id}" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer"><span>${esc(i.name||i.cat)}</span><span class="muted">${isSold(i)?`売れた ${yen(i.sell.soldPrice)}`:isListed(i)?`出品中 ${yen(i.sell.listPrice)}`:"取り下げ"}</span></div>`).join("")}</div>
     <button class="btn sec" id="sellCsv" style="width:100%;margin-top:10px">記録をCSVで書き出す</button></div>`;}
+function renderSell(){
+  const st=sellStats();const its=Object.values(S.items);
+  const listing=its.filter(isListed).sort((a,b)=>(a.sell.listedAt||"").localeCompare(b.sell.listedAt||""));
+  const sold=its.filter(isSold).sort((a,b)=>(b.sell.soldAt||"").localeCompare(a.sell.soldAt||""));
+  const cand=sleepingItems(365);
+  const hourly=st.net&&st.prepMin?Math.round(st.net/(st.prepMin*st.n/60)):null;
+  const row=(i,sub,right,warn)=>`<div class="row" data-sellopen="${i.id}" style="flex-wrap:nowrap;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer"><div class="ph" style="width:44px;height:44px;border-radius:8px;flex:none">${ph(i)}</div><div style="flex:1;min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name||i.cat)}</div><div style="font-size:12px;color:${warn?"var(--warn)":"var(--sub)"}">${sub}</div></div><div style="white-space:nowrap">${right}</div></div>`;
+  $("#v-sell").innerHTML=`${sampleBar()}
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="muted">着なくなった服をフリマアプリに出す準備と記録</span><button class="btn sec" id="sellPick" style="padding:7px 12px;font-size:13px">＋ 服を選んで出品</button></div>
+    <div class="stat"><div><b>${yen(st.net)}</b><span>手取りの合計</span></div><div><b>${st.sold} / ${st.n}</b><span>売れた／出品</span></div><div><b>${st.days??"—"}</b><span>販売までの平均日数</span></div></div>
+    ${st.n?`<div class="muted" style="margin:-4px 0 12px;font-size:12px">販売率 ${st.rate}%・売れた額 ${yen(st.gross)}・準備の平均 ${st.prepMin!=null?st.prepMin+"分":"—"}・準備1時間あたり ${hourly?yen(hourly):"—"}</div>`:""}
+    <div class="card"><h3>出品中 ${listing.length}件</h3>${listing.length?listing.map(i=>{const d=daysBetween(i.sell.listedAt,today())||0;return row(i,`${esc(i.sell.platform||"")}・${d+1}日目${d>=30?"　値下げどき":""}`,yen(i.sell.listPrice),d>=30);}).join(""):`<div class="muted">出品した服はここに並ぶ。押すと値下げ・売れた・取り下げを記録できる</div>`}</div>
+    <div class="card"><h3>手放し候補（1年以上着ていない）</h3>${cand.length?`<div class="outfit">${cand.map(i=>`<div class="oItem" data-sellopen="${i.id}" style="cursor:pointer"><div class="ph">${ph(i)}</div><div class="nm">${esc(i.name||i.cat)}</div><div class="lb">出品する</div></div>`).join("")}</div>`:`<div class="muted">今はない。1年以上着ていない服がここに出る</div>`}</div>
+    <div class="card"><h3>売れた ${sold.length}件</h3>${sold.length?sold.map(i=>row(i,`${esc(i.sell.soldAt||"")}・${yen(i.sell.soldPrice)}で売れた`,`手取り ${yen(sellNet(i.sell))}`)).join(""):`<div class="muted">売れたら、出品中の服を押して「売れたとして記録」</div>`}
+      ${st.n?`<button class="btn sec" id="sellCsv" style="width:100%;margin-top:10px">記録をCSVで書き出す</button>`:""}</div>`;
+  const v=$("#v-sell");
+  v.querySelectorAll("[data-sellopen]").forEach(e=>e.onclick=()=>openSell(e.dataset.sellopen));
+  const ts=$("#toSell");if(ts)ts.onclick=()=>{S.view="sell";render();window.scrollTo(0,0);};
+  $("#sellPick").onclick=()=>{const opts=Object.values(S.items).filter(i=>!isSold(i)&&!isListed(i)).sort((a,b)=>(a.wear||0)-(b.wear||0));
+    if(!opts.length){toast("出品できる服がない");return;}
+    const o=openSheet(`<h3 style="margin:4px 0 4px">出品する服を選ぶ</h3><p class="muted" style="margin:0 0 10px">着用回数が少ない順</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${opts.map(i=>`<div data-pk="${i.id}" style="cursor:pointer"><div class="ph lpph" style="aspect-ratio:1;width:100%;border-radius:10px;overflow:hidden">${ph(i)}</div><div style="font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name||i.cat)}</div><div class="muted" style="font-size:10px">${i.wear||0}回</div></div>`).join("")}</div>`);
+    o.querySelectorAll("[data-pk]").forEach(e=>e.onclick=()=>{o.remove();openSell(e.dataset.pk);});};
+}
 function sellCSV(){const s=sellStats();const head=["名前","ブランド","カテゴリ","出品先","状態","出品日","出品価格","価格の履歴","売れた日","売れた価格","手数料率%","手数料","送料","梱包費","手元に残った額","販売までの日数","準備時間（分）"];
   const rows=s.its.map(i=>{const x=i.sell;const sold=isSold(i);return [i.name||"",i.brand||"",catsOf(i).join("・"),x.platform||"",sold?"売れた":isListed(i)?"出品中":"取り下げ",x.listedAt||"",x.listPrice||"",(x.prices||[]).map(p=>p.d+":"+p.p).join(" "),sold?x.soldAt:"",sold?x.soldPrice:"",sold?x.feeRate:"",sold?Math.floor(x.soldPrice*x.feeRate/100):"",sold?x.ship:"",sold?x.pack:"",sold?sellNet(x):"",sold?daysBetween(x.listedAt,x.soldAt):"",Math.round((x.prepSec||0)/6)/10];});
   const csv="﻿"+[head,...rows].map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
@@ -996,7 +1047,9 @@ function pickWeighted(arr){const w=arr.map(weight);const t=w.reduce((a,b)=>a+b,0
 const pickRand=a=>a[Math.floor(Math.random()*a.length)];
 
 const MAINW=["トップス","インナー","ボトムス","アウター","靴","帽子","マフラー・ストール"];
+const UPPER=["帽子","マフラー・ストール","アウター","トップス","インナー"],LOWER=["ボトムス","靴","靴下","ベルト"];let ACC_POS="";
 function checkPair(chosen,cand,slot,ign){const NG=r=>!(ign&&ign.has(r));
+  if(ACC_POS&&(ACC_POS==="上"?LOWER:UPPER).includes(slot)&&accentColors([cand]).length)if(NG("差し色の位置"))return "差し色の位置";
   const R=S.rules,all=[...Object.values(chosen),cand];
   if(accentColors(all).length>R.maxAccent)if(NG("差し色が多い"))return "差し色が多い";
   const top=slot==="トップス"?cand:chosen["トップス"],bot=slot==="ボトムス"?cand:chosen["ボトムス"],out=slot==="アウター"?cand:chosen["アウター"];
@@ -1018,8 +1071,9 @@ const SCENES=["指定なし","普段・大学","おでかけ","きちんと"];
 const SCENE_TASTE={"普段・大学":["カジュアル","ストリート","アウトドア","アメカジ","古着","ミリタリー・ワーク","スポーツ","韓国系","どれでも"],"おでかけ":["きれいめ","モード","カジュアル","トラッド","韓国系","古着","どれでも"],"きちんと":["きれいめ","モード","トラッド","どれでも"]};
 function generateCore(sg,opt={}){
   const R=S.rules,rule=sg.mode==="rule",season=sg.season;
+  ACC_POS=rule&&R.maxAccent>0?(sg.accPos||""):"";
   const st=SCENE_TASTE[sg.scene];
-  const pool=Object.values(S.items).filter(i=>i.cat&&!isOff(i)&&(!i.seasons||!i.seasons.length||i.seasons.includes(season))
+  const pool=Object.values(S.items).filter(i=>i.cat&&!isOff(i)&&!(opt.exclude&&opt.exclude.has(i.id))&&(!i.seasons||!i.seasons.length||i.seasons.includes(season))
     &&(!st||!catsOf(i).some(c=>["トップス","ボトムス","アウター","靴"].includes(c))||!tastesOf(i).length||tastesOf(i).some(x=>st.includes(x))));
   const by=c=>pool.filter(i=>inCat(i,c));
   const tops=by("トップス"),inners=tops.filter(canUnder);
@@ -1072,6 +1126,10 @@ function generateCore(sg,opt={}){
           if(cc.length){o["靴下"]=pick(cc);sockMode=m;break;}}
         if(!o["靴下"])notes.push(bl==="ショート"?"見せられる丈（クルー・ハイ）で合う靴下がない":"合う靴下がない");
       }else notes.push("フル丈なので靴下は見えない");}
+    if(ACC_POS){const want=ACC_POS==="上"?UPPER:LOWER;const has=want.some(k=>o[k]&&accentColors([o[k]]).length);
+      const avail=pool.some(i=>catsOf(i).some(c=>want.includes(c)&&(c!=="アウター"||sg.outer)&&(c!=="帽子"||sg.hat)&&(c!=="マフラー・ストール"||sg.scarf)&&(c!=="ベルト"||sg.belt)&&(c!=="靴下"||sg.socks))&&accentColors([i]).length);
+      if(!has&&avail&&t<299){fails["差し色を"+ACC_POS+"に置けない"]=(fails["差し色を"+ACC_POS+"に置けない"]||0)+1;continue;}
+      if(has)notes.push("差し色は"+(ACC_POS==="上"?"上半身":"下半身")+"に");}
     const cats=ORDER.filter(k=>o[k]);
     return {outfit:o,cats,notes,sockMode,beltMode};
   }
@@ -1127,14 +1185,19 @@ function sleepingItems(days){const now=Date.now();return Object.values(S.items).
   (i.lastWorn?daysSince(i.lastWorn)>=days:(now-(i.created||now))/86400000>=Math.min(days,30)));}
 
 /* ===== 旅行のパッキング ===== */
-function packTrip(days){const sg={...S.sug,mode:"rule",anchor:""};const packed=new Set();const plan=[];const usedTops=new Set();
+/* 毎日替える服：トップス（重ね着の上の服も）、インナー、靴下。肌に触れる服（インナー、1枚で着るトップス、靴下）は特に優先 */
+function skinItems(o){return ["トップス","インナー","靴下"].map(k=>o[k]).filter(Boolean);}
+function touchItems(o){const a=[];if(o["インナー"])a.push(o["インナー"]);else if(o["トップス"])a.push(o["トップス"]);if(o["靴下"])a.push(o["靴下"]);return a;}
+function packTrip(days){const sg={...S.sug,mode:"rule",anchor:""};const packed=new Set();const plan=[];const worn=new Set(),touched=new Set();const warn=[],soft=[];
   for(let d=0;d<days;d++){let best=null,bs=1e9;
-    for(let t=0;t<120;t++){const r=generateCore(sg,{noRecent:true,noAnchor:true});if(!r.outfit)continue;
-      const ids=Object.values(r.outfit).map(i=>i.id);let sc=ids.filter(id=>!packed.has(id)).length;
-      if(usedTops.has(r.outfit["トップス"].id))sc+=0.8;if(sc<bs){bs=sc;best=r;}}
+    const tryDay=(exclude,ok)=>{for(let t=0;t<150;t++){const r=generateCore(sg,{noRecent:true,noAnchor:true,exclude});if(!r.outfit)continue;if(ok&&!ok(r.outfit))continue;
+      const ids=Object.values(r.outfit).map(i=>i.id);const sc=ids.filter(id=>!packed.has(id)).length;if(sc<bs){bs=sc;best=r;}}};
+    tryDay(worn,o=>!skinItems(o).some(i=>worn.has(i.id)));
+    if(!best){tryDay(touched,o=>!touchItems(o).some(i=>touched.has(i.id)));if(best)soft.push(d);}
+    if(!best){tryDay(null);if(best)warn.push(d);}
     if(!best)return {err:"組み合わせが作れなかった。季節やルールを見直す"};
-    Object.values(best.outfit).forEach(i=>packed.add(i.id));usedTops.add(best.outfit["トップス"].id);plan.push(best.outfit);}
-  return {plan,items:[...packed].map(id=>S.items[id])};}
+    Object.values(best.outfit).forEach(i=>packed.add(i.id));skinItems(best.outfit).forEach(i=>worn.add(i.id));touchItems(best.outfit).forEach(i=>touched.add(i.id));plan.push(best.outfit);}
+  return {plan,warn,soft,items:[...packed].map(id=>S.items[id])};}
 
 function packHTML(pk){if(pk.err)return `<div style="color:var(--warn);margin-top:10px">${esc(pk.err)}</div>`;
   const th=i=>`<div class="th" title="${esc(i.name||i.cat)}">${imgSrc(i)?`<img src="${esc(imgSrc(i))}">`:""}</div>`;
@@ -1142,14 +1205,18 @@ function packHTML(pk){if(pk.err)return `<div style="color:var(--warn);margin-top
   return `<div style="margin-top:12px"><b>持っていく服：${pk.items.length}着</b>
     ${ORDER.filter(c=>byCat[c]).map(c=>`<div class="logE"><span class="d">${c}</span>${byCat[c].map(th).join("")}</div>`).join("")}
     ${["インナー"].filter(c=>byCat[c]).join("")}
+    <div class="muted" style="margin-top:6px">トップス（重ね着の上の服も）、インナー、靴下は毎日別のものにしている。ボトムス、靴、アウター、小物は使い回して荷物を減らす</div>
+    ${pk.soft&&pk.soft.length?`<div style="color:var(--warn);margin-top:8px">重ね着の上の服が足りず、${pk.soft.map(d=>d+1+"日目").join("・")}は上の服だけ前の日と同じ（インナーは別）</div>`:""}
+    ${pk.warn&&pk.warn.length?`<div style="color:var(--warn);margin-top:8px">トップスやインナーが足りず、${pk.warn.map(d=>d+1+"日目").join("・")}は肌に触れる服も前の日と同じになっている。洗濯するか、Tシャツやインナーを追加で持っていく</div>`:""}
     <div style="margin-top:10px"><b>日ごとの組み合わせ</b></div>
-    ${pk.plan.map((o,d)=>`<div class="logE"><span class="d">${d+1}日目</span>${ORDER.filter(k=>o[k]).map(k=>th(o[k])).join("")}</div>`).join("")}</div>`;}
+    ${pk.plan.map((o,d)=>`<div class="logE"><span class="d">${d+1}日目${pk.warn&&pk.warn.includes(d)?"⚠":pk.soft&&pk.soft.includes(d)?"△":""}</span>${ORDER.filter(k=>o[k]).map(k=>th(o[k])).join("")}</div>`).join("")}</div>`;}
 function renderSuggest(all){
   const sg=S.sug;
   const hasT=all.some(i=>inCat(i,"トップス")),hasB=all.some(i=>inCat(i,"ボトムス"));
   if(!hasT||!hasB){$("#v-suggest").innerHTML=`${sampleBar()}<div class="guide"><b>コーデを出すには</b><p style="margin:8px 0">トップスとボトムスを1着ずつ以上登録すると、ここで組み合わせを提案できる。（今：トップス${hasT?"あり":"なし"}、ボトムス${hasB?"あり":"なし"}）</p>
     <div class="row"><button class="btn acc" data-loadsample style="flex:1">作った人の服で試す</button><button class="btn sec" data-addown style="flex:1">服を登録する</button></div></div>`;return;}
   const anchorOpts=all.filter(i=>catsOf(i).some(c=>["トップス","ボトムス","アウター","靴","ベルト","帽子","マフラー・ストール","靴下"].includes(c))).sort((a,b)=>((sg.locks||[]).includes(b.id)-(sg.locks||[]).includes(a.id))||(a.wear||0)-(b.wear||0));
+  if(!sg.trip&&!sg.result)sg.result=generate();
   const r=sg.result;
   let res="";
   if(r&&r.err)res=`<div class="card"><div style="color:var(--warn)">${esc(r.err)}</div></div>`;
@@ -1172,37 +1239,44 @@ function renderSuggest(all){
       <div style="margin-top:12px" class="${sg.vmode==="着画"?"":"hide"}">${figureHTML(r.outfit)}<p class="muted" style="text-align:center;margin:6px 0 0">写真を体型に当てはめた簡易イメージ</p></div>
       <div class="outfit ${sg.vmode==="並べる"?"":"hide"}" style="margin-top:12px">${r.cats.filter(c=>r.outfit[c]).map(c=>{const i=r.outfit[c];return `<div class="oItem"><div class="ph">${ph(i)}</div>
         <div class="lb">${c}・${i.wear||0}回</div><div class="nm">${esc(i.name||c)}</div></div>`;}).join("")}</div>
+      <div class="row" style="margin-top:12px"><button class="btn sec" id="again" style="flex:1;padding:13px">引き直す</button><button class="btn acc" id="wore" style="flex:1;padding:13px">これを着た</button></div>
       <div class="muted" style="margin-top:12px">🔒を付けた服はそのままで、残りだけ引き直せる</div>
       <div class="row" style="margin-top:6px;gap:6px">${r.cats.filter(c=>r.outfit[c]).map(c=>{const i=r.outfit[c];const on=(sg.locks||[]).includes(i.id);return `<span class="chip ${on?"on":""}" data-rlock="${i.id}">${on?"🔒 ":""}${esc(i.name||c)}</span>`;}).join("")}</div>
       <div class="row" style="margin-top:14px"><button class="btn sec" id="like" style="flex:1;padding:11px 6px;font-size:14px">👍 いいね</button><button class="btn sec" id="dislike" style="flex:1;padding:11px 6px;font-size:14px">👎 いまいち</button><button class="btn sec" id="fav" style="flex:1;padding:11px 6px;font-size:14px">☆ 保存</button></div>
-      <div class="row" style="margin-top:8px"><button class="btn sec" id="again" style="flex:1">引き直す</button><button class="btn acc" id="wore" style="flex:1">これを着た</button></div></div>`;
+</div>`;
   }
-  $("#v-suggest").innerHTML=`${sampleBar()}
-    <div class="card">
-      <h3>モード</h3>${chipGroup("mode",["ルール","ランダム"],sg.mode==="rule"?"ルール":"ランダム")}
-      <p class="muted" style="margin:8px 0 0">${sg.mode==="rule"?"色・シルエット・着丈・テイストのルールで絞り、着用回数が少ない服を優先する":"カテゴリと季節だけそろえて、あとは完全にランダム"}</p>
+  const condSum=[sg.season,sg.scene!=="指定なし"?sg.scene:"",sg.mode==="rule"&&sg.accPos?"差し色"+sg.accPos:"",sg.outer?"アウター":"",sg.layer?"レイヤード":"",(sg.locks||[]).length?"🔒"+sg.locks.length+"着":""].filter(Boolean).join("・");
+  const modeSel=sg.trip?"旅行":sg.mode==="rule"?"ルール":"ランダム";
+  const cond=`<details class="cond" id="cond" ${sg.condOpen?"open":""}><summary><b>条件</b><span class="sum">${esc(condSum)}</span><span style="color:var(--acc);font-size:13px">変える</span></summary><div>
+      <p class="muted" style="margin:0 0 4px">${sg.trip?"旅行の持ち物も、この季節・場面・ルールで組む":sg.mode==="rule"?"ルール：色・シルエット・着丈・テイストのルールで絞り、着用回数が少ない服を優先する":"ランダム：カテゴリと季節だけそろえて、あとは完全にランダム"}</p>
       <label class="f">季節</label>${chipGroup("season",SEASONS,sg.season)}
       <label class="f">場面</label>${chipGroup("scene",SCENES,sg.scene)}
+      ${sg.mode==="rule"?`<label class="f">差し色の位置</label>${chipGroup("accPos",["おまかせ","上に","下に"],sg.accPos==="上"?"上に":sg.accPos==="下"?"下に":"おまかせ")}`:""}
       ${sg.mode==="rule"&&S.borrowed.length?`<label class="f">だれのルールで組むか</label>${chipGroup("owner",["自分",...S.borrowed.map(b=>b.name+"さん")],sg.owner?(S.borrowed.find(b=>b.id===sg.owner)||{name:""}).name+"さん":"自分")}`:""}
       ${[["outer","アウターを含める"],["layer","レイヤードする（重ね着・透ける服＋インナー）"],["hat","帽子を含める"],["scarf","マフラー・ストールを含める"],["belt","ベルトを含める"],["socks","靴下を含める（アンクル丈・ショートのときだけ）"]]
         .map(([k,l])=>`<div class="sw-toggle"><span>${l}</span><input type="checkbox" data-sg="${k}" ${sg[k]?"checked":""}></div>`).join("")}
       <label class="f">もう決まっている服（複数可・タップで選ぶ）</label>
       <div class="row" style="gap:6px;align-items:center">${(sg.locks||[]).map(id=>S.items[id]).filter(Boolean).map(i=>`<span class="chip on" data-unlock="${i.id}">🔒 ${esc(i.name||i.cat)} ✕</span>`).join("")}<button class="btn sec" id="pickLocks" style="padding:6px 12px;font-size:13px">＋ 服を選ぶ</button></div>
       ${(sg.locks||[]).length?`<div class="row" style="justify-content:space-between;align-items:center;margin-top:6px"><span class="muted">${sg.locks.length}着を固定。残りをルーレットで組む</span><button class="btn sec" id="unlockAll" style="padding:5px 10px;font-size:12px">固定を外す</button></div>`:""}
-      <button class="btn" id="gen" style="width:100%;margin-top:14px">コーデを出す</button>
-      ${!r?`<p class="muted" style="margin:8px 0 0;text-align:center">迷ったら、そのまま「コーデを出す」を押せばよい</p>`:""}
-    </div>${res}
-    <div class="card"><h3>お気に入りコーデ</h3>${S.favs.length?S.favs.map(f=>{const its=ORDER.map(k=>f.slots[k]&&S.items[f.slots[k]]).filter(Boolean);
-      return `<div class="logE"><div style="display:flex;gap:4px;flex:1;flex-wrap:wrap">${its.map(i=>`<div class="th">${imgSrc(i)?`<img src="${esc(imgSrc(i))}">`:""}</div>`).join("")}</div>
-        <button class="btn sec" data-favshow="${f.id}" style="padding:6px 10px;font-size:12px">表示</button><button class="btn sec" data-favdel="${f.id}" style="padding:6px 10px;font-size:12px">削除</button></div>`;}).join(""):`<div class="muted">提案で「☆ 保存」を押すとここに残る</div>`}</div>
-    <div class="card"><h3>旅行のパッキング</h3><p class="muted" style="margin:0 0 8px">日数を選ぶと、少ない枚数で着回せる組み合わせを出す（上の季節・場面・ルールを使う）</p>
+      ${sg.trip?"":`<button class="btn" id="gen" style="width:100%;margin-top:14px">この条件で出し直す</button>`}
+    </div></details>`;
+  const trip=`<div class="card"><h3 style="margin-bottom:4px">旅行の持ち物</h3><p class="muted" style="margin:0 0 8px">日数を選ぶと、毎日のコーデと持っていく服のリストを出す。トップス・インナー・靴下は毎日替え、ボトムスや靴は使い回す</p>
       ${chipGroup("packDays",["2","3","4","5","6","7"],String(sg.packDays))}<button class="btn" id="packBtn" style="width:100%;margin-top:10px">持ち物を出す</button>
       <div id="packRes">${sg.pack?packHTML(sg.pack):""}</div></div>`;
+  $("#v-suggest").innerHTML=`${sampleBar()}
+    <div class="seg" data-seg="mode" style="margin-bottom:12px">${["ルール","ランダム","旅行"].map(m=>`<span data-m="${m}" class="${m===modeSel?"on":""}">${m}</span>`).join("")}</div>
+    ${sg.trip?trip+cond:res+cond}
+    <div class="card"><h3>お気に入りコーデ</h3>${S.favs.length?S.favs.map(f=>{const its=ORDER.map(k=>f.slots[k]&&S.items[f.slots[k]]).filter(Boolean);
+      return `<div class="logE"><div style="display:flex;gap:4px;flex:1;flex-wrap:wrap">${its.map(i=>`<div class="th">${imgSrc(i)?`<img src="${esc(imgSrc(i))}">`:""}</div>`).join("")}</div>
+        <button class="btn sec" data-favshow="${f.id}" style="padding:6px 10px;font-size:12px">表示</button><button class="btn sec" data-favdel="${f.id}" style="padding:6px 10px;font-size:12px">削除</button></div>`;}).join(""):`<div class="muted">提案で「☆ 保存」を押すとここに残る</div>`}</div>`;
   const v=$("#v-suggest");
-  bindChips(v,g=>{if(g==="mode"){sg.mode=readGroup(v,"mode")==="ランダム"?"random":"rule";sg.result=null;render();}
+  v.querySelectorAll("[data-seg=mode] span").forEach(e=>e.onclick=()=>{const m=e.dataset.m;if(m===modeSel)return;sg.trip=m==="旅行";if(!sg.trip){sg.mode=m==="ランダム"?"random":"rule";sg.result=null;}else sg.mode="rule";render();});
+  const cd=$("#cond");if(cd)cd.ontoggle=()=>{sg.condOpen=cd.open;};
+  bindChips(v,g=>{
     if(g==="season"){sg.season=readGroup(v,"season")||curSeason();}
     if(g==="figView"){sg.vmode=readGroup(v,"figView")||"コーデ";render();}
     if(g==="scene"){sg.scene=readGroup(v,"scene")||"指定なし";}
+    if(g==="accPos"){const x=readGroup(v,"accPos");sg.accPos=x==="上に"?"上":x==="下に"?"下":"";}
     if(g==="owner"){const n=readGroup(v,"owner");const b=S.borrowed.find(x=>x.name+"さん"===n);sg.owner=b?b.id:"";}
     if(g==="packDays"){sg.packDays=Number(readGroup(v,"packDays")||3);}});
   const lk=$("#like");if(lk)lk.onclick=async()=>{await learn(sg.result.outfit,1);lk.disabled=true;toast("好みとして覚えた");};
@@ -1211,13 +1285,13 @@ function renderSuggest(all){
   v.querySelectorAll("[data-favshow]").forEach(b=>b.onclick=()=>{const f=S.favs.find(x=>x.id===b.dataset.favshow);if(!f)return;const o={};for(const k in f.slots)if(S.items[f.slots[k]])o[k]=S.items[f.slots[k]];
     if(!o["トップス"]||!o["ボトムス"]){toast("服が削除されているため表示できない");return;}sg.result={outfit:o,cats:ORDER.filter(k=>o[k]),notes:["お気に入りから表示"]};render();window.scrollTo(0,0);});
   v.querySelectorAll("[data-favdel]").forEach(b=>b.onclick=async()=>{S.favs=S.favs.filter(x=>x.id!==b.dataset.favdel);await saveFavs();render();});
-  $("#packBtn").onclick=()=>{sg.pack=packTrip(sg.packDays);render();};
+  const pb=$("#packBtn");if(pb)pb.onclick=()=>{sg.pack=packTrip(sg.packDays);render();};
   v.querySelectorAll("[data-sg]").forEach(c=>c.onchange=()=>{sg[c.dataset.sg]=c.checked;});
   v.querySelectorAll("[data-unlock]").forEach(e=>e.onclick=()=>{sg.locks=(sg.locks||[]).filter(x=>x!==e.dataset.unlock);render();});
   const pl=$("#pickLocks");if(pl)pl.onclick=()=>openLockPicker(anchorOpts);
   const ua=$("#unlockAll");if(ua)ua.onclick=()=>{sg.locks=[];render();};
   v.querySelectorAll("[data-rlock]").forEach(e=>e.onclick=()=>{const id=e.dataset.rlock;sg.locks=sg.locks||[];sg.locks=sg.locks.includes(id)?sg.locks.filter(x=>x!==id):[...sg.locks,id];render();});
-  $("#gen").onclick=()=>{sg.result=generate();render();};
+  const gb=$("#gen");if(gb)gb.onclick=()=>{sg.result=generate();sg.condOpen=false;render();window.scrollTo(0,0);};
   const ag=$("#again");if(ag)ag.onclick=()=>{sg.result=generate();render();};
   const w=$("#wore");if(w)w.onclick=async()=>{const ids=Object.values(sg.result.outfit).map(i=>i.id);w.disabled=true;await learn(sg.result.outfit,0.5);await recordWear(ids);sg.result=null;render();toast("着用を記録した");};
 }
@@ -1293,12 +1367,11 @@ function renderLog(all){
   const month=today().slice(0,7);const mCount=S.log.filter(l=>l.date.startsWith(month)).length;
   const sleeping=all.filter(i=>!["アクセサリー","バッグ"].includes(i.cat)).sort((a,b)=>daysSince(b.lastWorn)-daysSince(a.lastWorn)).slice(0,6);
   const most=[...all].sort((a,b)=>(b.wear||0)-(a.wear||0)).filter(i=>i.wear).slice(0,5);
-  $("#v-log").innerHTML=`
+  $("#v-log").innerHTML=`${sampleBar()}${closetSeg()}
     <div class="stat"><div><b>${total}</b><span>登録した服</span></div><div><b>${never}</b><span>未着用</span></div><div><b>${mCount}</b><span>今月の記録</span></div></div>
     <div class="card" style="margin-top:12px"><h3>あなたの傾向</h3>${tendencyHTML()}</div>
     ${rankHTML()}
-    ${sellHTML()}
-    ${(()=>{const g=sleepingItems(365);return g.length?`<div class="card"><h3>手放し候補（1年以上着ていない）</h3><div class="muted" style="margin:-4px 0 8px">タップ →「出品する」で出品文と相場を出せる</div><div class="outfit">${g.map(i=>`<div class="oItem" data-id="${i.id}" style="cursor:pointer"><div class="ph">${ph(i)}</div><div class="nm">${esc(i.name||i.cat)}</div></div>`).join("")}</div></div>`:"";})()}
+    ${(()=>{const g=sleepingItems(365);return g.length?`<div class="sumline" id="toSell">1年以上着ていない服が${g.length}着ある<span>出品タブで見る ›</span></div>`:"";})()}
     <div class="card"><h3>眠っている服</h3>
       ${sleeping.length?`<div class="outfit">${sleeping.map(i=>`<div class="oItem" data-id="${i.id}" style="cursor:pointer"><div class="ph">${ph(i)}</div>
       <div class="lb">${i.lastWorn?(daysSince(i.lastWorn)?daysSince(i.lastWorn)+"日前":"今日"):"未着用"}</div><div class="nm">${esc(i.name||i.cat)}</div></div>`).join("")}</div>`:`<div class="muted">まだ服がない</div>`}</div>
