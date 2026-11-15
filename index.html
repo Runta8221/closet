@@ -21,16 +21,20 @@
 html,body{touch-action:pan-x pan-y;}
 html{-webkit-text-size-adjust:100%}
 input,select,textarea{font-size:16px}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.5}
-header{padding-top:env(safe-area-inset-top);position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+html,body{height:100%;overflow:hidden;margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.5}
+body{display:flex;flex-direction:column}
+header{flex:none;padding-top:env(safe-area-inset-top);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
 .top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px}
 .top h1{font-size:18px;margin:0;letter-spacing:.04em}
 .top .cnt{font-size:12px;color:var(--sub)}
-nav{position:fixed;left:0;right:0;bottom:0;z-index:8;display:flex;background:rgba(246,245,242,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+nav{flex:none;position:relative;z-index:8;display:flex;align-items:flex-end;background:rgba(246,245,242,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
 nav button{flex:1;min-width:0;border:0;background:transparent;padding:6px 1px 4px;font-size:10.5px;white-space:nowrap;letter-spacing:-.02em;color:var(--sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent}
 nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--ink);font-weight:600}
 nav button.on svg{stroke-width:2.2}
+nav button.plus .pc{width:50px;height:50px;margin-top:-22px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+nav button.plus .pc svg{stroke:#fff;stroke-width:2.4;width:26px;height:26px}
+nav button.plus{color:var(--ink)}
 .seg{display:flex;background:#e9e7e2;border-radius:10px;padding:3px;gap:3px}
 .seg span{flex:1;text-align:center;padding:7px 4px;border-radius:8px;font-size:14px;color:var(--sub);cursor:pointer}
 .seg span.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
@@ -39,7 +43,8 @@ details.cond>summary{list-style:none;padding:12px 14px;cursor:pointer;display:fl
 details.cond>summary::-webkit-details-marker{display:none}
 details.cond>summary .sum{color:var(--sub);font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 details.cond>div{padding:0 14px 14px}
-main{padding:14px 14px calc(130px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:14px 14px 40px;width:100%;box-sizing:border-box}
+main>*{max-width:760px;margin-left:auto;margin-right:auto}
 .sumline{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:12px;cursor:pointer}
 .sumline span{color:var(--acc);white-space:nowrap}
 .banner{background:#fff4e5;border:1px solid #f0d8b0;color:#7a5410;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:12px}
@@ -94,7 +99,7 @@ textarea{min-height:60px}
 .sw-toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);gap:12px}
 .sw-toggle:last-child{border-bottom:0}
 .sw-toggle small{display:block;color:var(--sub);font-size:12px}
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 .empty{text-align:center;padding:40px 10px;color:var(--sub)}
 .fig{position:relative;width:240px;height:480px;margin:0 auto}
@@ -136,13 +141,7 @@ textarea{min-height:60px}
 <body>
 <header>
   <div class="top"><h1>クローゼット</h1><span class="row" style="gap:10px;align-items:center"><span class="cnt" id="cnt"></span><button id="helpBtn" class="btn sec" style="padding:4px 11px;font-size:14px;border-radius:999px">？</button></span></div>
-  <nav id="nav">
-    <button data-v="suggest"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>コーデを組む</button>
-    <button data-v="closet"><svg viewBox="0 0 24 24"><path d="M12 6a2 2 0 1 1 2 2c-1 .4-2 1-2 2"/><path d="M12 10L3 17h18z"/></svg>クローゼット</button>
-    <button data-v="sell"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg>出品</button>
-    <button data-v="want"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>欲しい服</button>
-    <button data-v="rules"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>設定</button>
-  </nav>
+
 </header>
 <main>
   <div id="banner" class="banner hide"></div>
@@ -153,7 +152,14 @@ textarea{min-height:60px}
   <section id="v-want" class="hide"></section>
   <section id="v-rules" class="hide"></section>
 </main>
-<button class="btn fab" id="fab">＋ 服を登録</button>
+<nav id="nav">
+  <button data-v="suggest"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>コーデを組む</button>
+  <button data-v="closet"><svg viewBox="0 0 24 24"><path d="M12 6a2 2 0 1 1 2 2c-1 .4-2 1-2 2"/><path d="M12 10L3 17h18z"/></svg>クローゼット</button>
+  <button data-v="add" class="plus"><span class="pc"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>登録</button>
+  <button data-v="sell"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg>出品</button>
+  <button data-v="rules"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>設定</button>
+</nav>
+
 <div class="toast" id="toast"></div>
 <input type="file" id="fileIn" accept="image/*" class="hide">
 <input type="file" id="bulkIn" accept="image/*" multiple class="hide">
@@ -433,24 +439,24 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-clearsample]"))
   if(e.target.closest("[data-addown]"))guardOwn(addMenu);});
 
 /* ===== 描画 ===== */
-const BUILD="v37";
+const BUILD="v38";
+const scrollTop0=()=>{const m=document.querySelector("main");if(m)m.scrollTop=0;};
 function render(){
   const all=Object.values(S.items).filter(i=>!isSold(i));
   $("#cnt").textContent=all.length+"着";
-  const navV=S.view==="log"?"closet":S.view;
+  const navV=(S.view==="log"||S.view==="want")?"closet":S.view;
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===navV));
   ["closet","suggest","log","sell","want","rules"].forEach(v=>$("#v-"+v).classList.toggle("hide",v!==S.view));
-  $("#fab").classList.toggle("hide",S.view!=="closet");
   if(S.view==="closet")renderCloset(all);
   if(S.view==="suggest")renderSuggest(all);
   if(S.view==="log")renderLog(all);
   if(S.view==="rules")renderRules();
   if(S.view==="want")renderWant();
   if(S.view==="sell")renderSell();
-  document.querySelectorAll("[data-cseg] span").forEach(e=>e.onclick=()=>{const v=e.dataset.to;if(v===S.view)return;S.view=v;S.closetSeg=v;render();window.scrollTo(0,0);});
+  document.querySelectorAll("[data-cseg] span").forEach(e=>e.onclick=()=>{const v=e.dataset.to;if(v===S.view)return;S.view=v;S.closetSeg=v;render();scrollTop0();});
 }
-const closetSeg=()=>`<div class="seg" data-cseg style="margin-bottom:12px"><span data-to="closet" class="${S.view==="closet"?"on":""}">一覧</span><span data-to="log" class="${S.view==="log"?"on":""}">ふり返り</span></div>`;
-$("#nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;let v=b.dataset.v;if(v==="closet")v=(S.view==="closet"||S.view==="log")?S.view:(S.closetSeg||"closet");S.view=v;render();window.scrollTo(0,0);};
+const closetSeg=()=>`<div class="seg" data-cseg style="margin-bottom:12px"><span data-to="closet" class="${S.view==="closet"?"on":""}">一覧</span><span data-to="log" class="${S.view==="log"?"on":""}">ふり返り</span><span data-to="want" class="${S.view==="want"?"on":""}">欲しい服</span></div>`;
+$("#nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;let v=b.dataset.v;if(v==="add"){guardOwn(addMenu);return;}if(v==="closet")v=["closet","log","want"].includes(S.view)?S.view:(S.closetSeg||"closet");S.view=v;render();scrollTop0();};
 
 function renderCloset(all){
   const f=S.filter;const sleepIds=new Set(sleepingItems(S.rules.sleepDays||90).map(i=>i.id));
@@ -486,7 +492,7 @@ function renderCloset(all){
   $("#sortSel").value=S.sort;
   $("#sortSel").onchange=e=>{S.sort=e.target.value;render();};
   $("#bulkBtn").onclick=bulkAdd;$("#buyBtn").onclick=buyCheck;$("#sizeBtn").onclick=()=>sizeCompare();
-  const tl=$("#toLog");if(tl)tl.onclick=()=>{S.view="log";S.closetSeg="log";render();window.scrollTo(0,0);};
+  const tl=$("#toLog");if(tl)tl.onclick=()=>{S.view="log";S.closetSeg="log";render();scrollTop0();};
   $("#v-closet").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{S.filter=c.dataset.f;render();});
   $("#v-closet").querySelectorAll(".item").forEach(c=>c.onclick=()=>openDetail(c.dataset.id));
 }
@@ -597,7 +603,7 @@ function openForm(edit,pre){
     toast("保存した。次の服を囲む");openForm(null,{origBlob:src,autoCrop:true,it:{seasons:r.seasons,taste:r.taste}});};
   if(pre&&pre.autoCrop)setTimeout(recrop,150);
 }
-$("#fab").onclick=()=>guardOwn(addMenu);
+
 function addMenu(){const o=openSheet(`<h2>服を取り込む</h2><p class="muted" style="margin:0 0 10px">やりやすい方法を選ぶ。どの方法でも、あとから編集で直せる。</p>
   ${[["m1","📷","1着ずつ撮る","服を1着撮って、切り抜いて登録する。一番ていねい"],
      ["m2","🧺","並べて1枚で撮る","ベッドや床に服を並べて1枚撮り、指で囲んで次々と取り込む"],
@@ -724,7 +730,7 @@ function renderWant(){const budget=Number(S.rules.budget)||0;
   const list=S.wants.map(w=>({w,...wantScore(w)})).sort((a,b)=>b.score-a.score);let sum=0,cut=-1;
   list.forEach((x,k)=>{sum+=Number(x.w.price)||0;if(budget&&cut<0&&sum>budget)cut=k;});
   const PR=["低","中","高"];
-  $("#v-want").innerHTML=`<div class="card"><h3>欲しいもの</h3><p class="muted" style="margin:0 0 8px">手持ちと何通り組めるか・優先度・価格から、先に買うとよい順に並べる。</p>
+  $("#v-want").innerHTML=`${sampleBar()}${closetSeg()}<div class="card"><h3>欲しいもの</h3><p class="muted" style="margin:0 0 8px">手持ちと何通り組めるか・優先度・価格から、先に買うとよい順に並べる。</p>
     <div class="row" style="align-items:center;gap:8px"><span class="muted">予算</span><input type="number" id="budget" inputmode="numeric" placeholder="例：20000" value="${budget||""}" style="flex:1"><span class="muted">円</span></div>
     <button class="btn acc" id="wAdd" style="width:100%;margin-top:10px">欲しいものを追加</button></div>
     ${list.length?list.map((x,k)=>`${k===cut?`<div class="banner" style="text-align:center">ここから下は予算オーバー</div>`:""}<div class="card" style="display:flex;gap:12px">
@@ -734,7 +740,7 @@ function renderWant(){const budget=Number(S.rules.budget)||0;
         <div style="margin-top:6px" data-wp="${x.w.id}">${chipGroup("wp_"+x.w.id,PR,PR[(x.w.priority||2)-1])}</div>
         ${x.w.url?`<a href="${esc(x.w.url)}" target="_blank" rel="noopener" class="muted">商品ページ</a>`:""}
         <div class="row" style="margin-top:8px"><button class="btn acc" data-wbuy="${x.w.id}" style="padding:6px 12px;font-size:13px">買った</button><button class="btn sec" data-wdel="${x.w.id}" style="padding:6px 12px;font-size:13px">削除</button></div></div></div>`).join("")
-      :`<div class="guide">気になる服を入れておくと、手持ちとの組みやすさで「先に買うべき順」が分かる。お店では手持ちタブの「買う前チェック」から「欲しいものに追加」もできる。</div>`}`;
+      :`<div class="guide">気になる服を入れておくと、手持ちとの組みやすさで「先に買うべき順」が分かる。お店ではクローゼット（一覧）の「買う前チェック」から「欲しいものに追加」もできる。</div>`}`;
   const v=$("#v-want");
   bindChips(v,async g=>{if(!g.startsWith("wp_"))return;const id=g.slice(3);const w=S.wants.find(x=>x.id===id);if(!w)return;w.priority=PR.indexOf(readGroup(v,g))+1;await saveWants();render();});
   $("#budget").onchange=async e=>{S.rules.budget=Number(e.target.value)||0;await saveRules();};
@@ -1026,7 +1032,7 @@ function renderSell(){
       ${st.n?`<button class="btn sec" id="sellCsv" style="width:100%;margin-top:10px">記録をCSVで書き出す</button>`:""}</div>`;
   const v=$("#v-sell");
   v.querySelectorAll("[data-sellopen]").forEach(e=>e.onclick=()=>openSell(e.dataset.sellopen));
-  const ts=$("#toSell");if(ts)ts.onclick=()=>{S.view="sell";render();window.scrollTo(0,0);};
+  const ts=$("#toSell");if(ts)ts.onclick=()=>{S.view="sell";render();scrollTop0();};
   $("#sellPick").onclick=()=>{const opts=Object.values(S.items).filter(i=>!isSold(i)&&!isListed(i)).sort((a,b)=>(a.wear||0)-(b.wear||0));
     if(!opts.length){toast("出品できる服がない");return;}
     const o=openSheet(`<h3 style="margin:4px 0 4px">出品する服を選ぶ</h3><p class="muted" style="margin:0 0 10px">着用回数が少ない順</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${opts.map(i=>`<div data-pk="${i.id}" style="cursor:pointer"><div class="ph lpph" style="aspect-ratio:1;width:100%;border-radius:10px;overflow:hidden">${ph(i)}</div><div style="font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name||i.cat)}</div><div class="muted" style="font-size:10px">${i.wear||0}回</div></div>`).join("")}</div>`);
@@ -1105,7 +1111,7 @@ function generateCore(sg,opt={}){
       if(rule&&R.sleeveLayer&&main.sleeve==="半袖"){const lg=c.filter(x=>x.sleeve==="長袖");if(lg.length)c=lg;}
       c=fit(o,"インナー",c);if(!c.length){fails["合うインナーがない"]=(fails["合うインナーがない"]||0)+1;continue;}o["インナー"]=pick(c);}
     if(!o["ボトムス"]){const c=fit(o,"ボトムス",by("ボトムス"));if(!c.length)continue;o["ボトムス"]=pick(c);}
-    if(sg.outer&&!o["アウター"]&&by("アウター").length){const c=fit(o,"アウター",by("アウター"));if(c.length)o["アウター"]=pick(c);}
+    if(sg.outer&&!o["アウター"]&&by("アウター").length){const c=fit(o,"アウター",by("アウター").filter(x=>!opt.onlyOuter||opt.onlyOuter.has(x.id)));if(c.length)o["アウター"]=pick(c);}
     if(!o["靴"]&&by("靴").length){const c=fit(o,"靴",by("靴"));if(c.length)o["靴"]=pick(c);}
     if(!o["ベルト"]&&sg.belt&&by("ベルト").length){const c=by("ベルト");const ref=o["靴"]?mainsOf(o["靴"]):[];
       const modes=!rule?["どれでも"]:(R.beltMatchShoes?["合わせる"]:(Math.random()<.5?["合わせる","差し色"]:["差し色","合わせる"]));
@@ -1188,21 +1194,47 @@ function sleepingItems(days){const now=Date.now();return Object.values(S.items).
 /* 毎日替える服：トップス（重ね着の上の服も）、インナー、靴下。肌に触れる服（インナー、1枚で着るトップス、靴下）は特に優先 */
 function skinItems(o){return ["トップス","インナー","靴下"].map(k=>o[k]).filter(Boolean);}
 function touchItems(o){const a=[];if(o["インナー"])a.push(o["インナー"]);else if(o["トップス"])a.push(o["トップス"]);if(o["靴下"])a.push(o["靴下"]);return a;}
-function packTrip(days){const sg={...S.sug,mode:"rule",anchor:""};const packed=new Set();const plan=[];const worn=new Set(),touched=new Set();const warn=[],soft=[];
+function outerCands(sg){return Object.values(S.items).filter(i=>inCat(i,"アウター")&&!isOff(i)&&(!i.seasons||!i.seasons.length||i.seasons.includes(sg.season)));}
+function packOnce(days,sg,only){const packed=new Set();const plan=[];const worn=new Set(),touched=new Set();const warn=[],soft=[];
   for(let d=0;d<days;d++){let best=null,bs=1e9;
-    const tryDay=(exclude,ok)=>{for(let t=0;t<150;t++){const r=generateCore(sg,{noRecent:true,noAnchor:true,exclude});if(!r.outfit)continue;if(ok&&!ok(r.outfit))continue;
-      const ids=Object.values(r.outfit).map(i=>i.id);const sc=ids.filter(id=>!packed.has(id)).length;if(sc<bs){bs=sc;best=r;}}};
-    tryDay(worn,o=>!skinItems(o).some(i=>worn.has(i.id)));
+    const tryDay=(exclude,ok)=>{for(let t=0;t<120;t++){const r=generateCore(sg,{noRecent:true,noAnchor:true,exclude,onlyOuter:only});if(!r.outfit)continue;if(ok&&!ok(r.outfit))continue;
+      const ids=Object.values(r.outfit).map(i=>i.id);let sc=ids.filter(id=>!packed.has(id)).length;
+      if(only){if(!r.outfit["アウター"])sc+=3;else if(!packed.has(r.outfit["アウター"].id))sc-=0.5;}if(sc<bs){bs=sc;best=r;}}};
+    const unusedO=only?[...only].filter(id=>!packed.has(id)):[];
+    if(unusedO.length)tryDay(worn,o=>o["アウター"]&&unusedO.includes(o["アウター"].id)&&!skinItems(o).some(i=>worn.has(i.id)));
+    if(!best)tryDay(worn,o=>!skinItems(o).some(i=>worn.has(i.id)));
     if(!best){tryDay(touched,o=>!touchItems(o).some(i=>touched.has(i.id)));if(best)soft.push(d);}
     if(!best){tryDay(null);if(best)warn.push(d);}
-    if(!best)return {err:"組み合わせが作れなかった。季節やルールを見直す"};
+    if(!best)return null;
     Object.values(best.outfit).forEach(i=>packed.add(i.id));skinItems(best.outfit).forEach(i=>worn.add(i.id));touchItems(best.outfit).forEach(i=>touched.add(i.id));plan.push(best.outfit);}
   return {plan,warn,soft,items:[...packed].map(id=>S.items[id])};}
+/* 持っていく服だけで何通り組めるか（ルールを守る組み合わせを数える） */
+function countCombos(items,sg){const has=c=>items.filter(i=>inCat(i,c));const tops=has("トップス"),bots=has("ボトムス"),shoes=has("靴"),outs=sg.outer?has("アウター"):[];
+  const mains=[];for(const t of tops){if(canSolo(t))mains.push([t,null]);if(canOver(t))for(const u of tops)if(u!==t&&canUnder(u))mains.push([t,u]);}
+  let n=0;for(const [t,u] of mains){const o0={"トップス":t};if(u){if(checkPair(o0,u,"インナー"))continue;o0["インナー"]=u;}
+    for(const b of bots){if(b===t||b===u)continue;if(checkPair(o0,b,"ボトムス"))continue;const o1={...o0,"ボトムス":b};
+      for(const sh of (shoes.length?shoes:[null])){if(sh&&checkPair(o1,sh,"靴"))continue;const o2=sh?{...o1,"靴":sh}:o1;
+        if(!outs.length){n++;continue;}for(const ou of outs){if(ou===t)continue;if(!checkPair(o2,ou,"アウター"))n++;}}}}
+  return n;}
+function packTrip(days,nOuter){const base={...S.sug,mode:"rule",anchor:""};nOuter=nOuter==null?1:nOuter;
+  const sg={...base,outer:nOuter>0};ACC_POS="";
+  const cands=outerCands(sg);let best=null,bScore=-Infinity;
+  const tries=nOuter>0&&cands.length>nOuter?8:1;
+  for(let k=0;k<tries;k++){let only=null;
+    if(nOuter>0){const pool=k===0?[...cands].sort((a,b)=>(a.wear||0)-(b.wear||0)):[...cands].sort(()=>Math.random()-.5);only=new Set(pool.slice(0,nOuter).map(i=>i.id));}
+    const r=packOnce(days,sg,only);if(!r)continue;
+    ACC_POS=S.rules.maxAccent>0?(sg.accPos||""):"";
+    const usedO=only?[...only].filter(id=>r.plan.some(o=>o["アウター"]&&o["アウター"].id===id)).length:0;
+    const combos=countCombos(r.items,sg);const sc=combos*10-r.items.length*3-r.warn.length*50-r.soft.length*15-(only?(only.size-usedO)*60:0);
+    if(sc>bScore){bScore=sc;best={...r,combos,nOuter,usedO,outerAvail:cands.length};}}
+  if(!best)return {err:"組み合わせが作れなかった。季節やルールを見直す"};
+  return best;}
 
 function packHTML(pk){if(pk.err)return `<div style="color:var(--warn);margin-top:10px">${esc(pk.err)}</div>`;
   const th=i=>`<div class="th" title="${esc(i.name||i.cat)}">${imgSrc(i)?`<img src="${esc(imgSrc(i))}">`:""}</div>`;
   const byCat={};pk.items.forEach(i=>(byCat[i.cat]=byCat[i.cat]||[]).push(i));
-  return `<div style="margin-top:12px"><b>持っていく服：${pk.items.length}着</b>
+  return `<div style="margin-top:14px;display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b>持っていく服：${pk.items.length}着</b>${pk.combos!=null?`<span style="color:var(--acc);font-weight:600">組める組み合わせ ${pk.combos}通り</span>`:""}</div>
+    ${pk.nOuter===0?`<div class="muted" style="font-size:12px">アウターなしで組んだ</div>`:pk.usedO<pk.nOuter?`<div class="muted" style="font-size:12px">アウターを${pk.nOuter}着の指定だが、ルールに合う組み合わせが作れたのは${pk.usedO}着だけだった</div>`:""}<div>
     ${ORDER.filter(c=>byCat[c]).map(c=>`<div class="logE"><span class="d">${c}</span>${byCat[c].map(th).join("")}</div>`).join("")}
     ${["インナー"].filter(c=>byCat[c]).join("")}
     <div class="muted" style="margin-top:6px">トップス（重ね着の上の服も）、インナー、靴下は毎日別のものにしている。ボトムス、靴、アウター、小物は使い回して荷物を減らす</div>
@@ -1260,8 +1292,12 @@ function renderSuggest(all){
       ${(sg.locks||[]).length?`<div class="row" style="justify-content:space-between;align-items:center;margin-top:6px"><span class="muted">${sg.locks.length}着を固定。残りをルーレットで組む</span><button class="btn sec" id="unlockAll" style="padding:5px 10px;font-size:12px">固定を外す</button></div>`:""}
       ${sg.trip?"":`<button class="btn" id="gen" style="width:100%;margin-top:14px">この条件で出し直す</button>`}
     </div></details>`;
-  const trip=`<div class="card"><h3 style="margin-bottom:4px">旅行の持ち物</h3><p class="muted" style="margin:0 0 8px">日数を選ぶと、毎日のコーデと持っていく服のリストを出す。トップス・インナー・靴下は毎日替え、ボトムスや靴は使い回す</p>
-      ${chipGroup("packDays",["2","3","4","5","6","7"],String(sg.packDays))}<button class="btn" id="packBtn" style="width:100%;margin-top:10px">持ち物を出す</button>
+  const oAvail=outerCands(sg).length;const oMax=Math.min(3,oAvail);if((sg.packOuter??1)>oMax)sg.packOuter=oMax;
+  const trip=`<div class="card">
+      <label class="f" style="margin-top:0">日数</label>${chipGroup("packDays",["2","3","4","5","6","7"],String(sg.packDays))}
+      <label class="f">アウターの数</label>${chipGroup("packOuter",Array.from({length:oMax+1},(_,k)=>String(k)),String(sg.packOuter??1))}
+      <p class="muted" style="margin:6px 0 0;font-size:12px">${oAvail?`この季節（${esc(sg.season)}）に着られるアウターは${oAvail}着`:`この季節（${esc(sg.season)}）に着られるアウターがない`}</p>
+      <button class="btn" id="packBtn" style="width:100%;margin-top:12px">持ち物を出す</button>
       <div id="packRes">${sg.pack?packHTML(sg.pack):""}</div></div>`;
   $("#v-suggest").innerHTML=`${sampleBar()}
     <div class="seg" data-seg="mode" style="margin-bottom:12px">${["ルール","ランダム","旅行"].map(m=>`<span data-m="${m}" class="${m===modeSel?"on":""}">${m}</span>`).join("")}</div>
@@ -1278,20 +1314,21 @@ function renderSuggest(all){
     if(g==="scene"){sg.scene=readGroup(v,"scene")||"指定なし";}
     if(g==="accPos"){const x=readGroup(v,"accPos");sg.accPos=x==="上に"?"上":x==="下に"?"下":"";}
     if(g==="owner"){const n=readGroup(v,"owner");const b=S.borrowed.find(x=>x.name+"さん"===n);sg.owner=b?b.id:"";}
-    if(g==="packDays"){sg.packDays=Number(readGroup(v,"packDays")||3);}});
+    if(g==="packDays"){sg.packDays=Number(readGroup(v,"packDays")||3);}
+    if(g==="packOuter"){sg.packOuter=Number(readGroup(v,"packOuter")||0);}});
   const lk=$("#like");if(lk)lk.onclick=async()=>{await learn(sg.result.outfit,1);lk.disabled=true;toast("好みとして覚えた");};
   const dl=$("#dislike");if(dl)dl.onclick=async()=>{await learn(sg.result.outfit,-1);toast("次から出にくくする");sg.result=generate();render();};
   const fv=$("#fav");if(fv)fv.onclick=async()=>{const slots={};for(const k in sg.result.outfit)slots[k]=sg.result.outfit[k].id;S.favs.unshift({id:rid(),slots,ts:Date.now()});await saveFavs();fv.disabled=true;fv.textContent="★ 保存済み";render();};
   v.querySelectorAll("[data-favshow]").forEach(b=>b.onclick=()=>{const f=S.favs.find(x=>x.id===b.dataset.favshow);if(!f)return;const o={};for(const k in f.slots)if(S.items[f.slots[k]])o[k]=S.items[f.slots[k]];
-    if(!o["トップス"]||!o["ボトムス"]){toast("服が削除されているため表示できない");return;}sg.result={outfit:o,cats:ORDER.filter(k=>o[k]),notes:["お気に入りから表示"]};render();window.scrollTo(0,0);});
+    if(!o["トップス"]||!o["ボトムス"]){toast("服が削除されているため表示できない");return;}sg.result={outfit:o,cats:ORDER.filter(k=>o[k]),notes:["お気に入りから表示"]};render();scrollTop0();});
   v.querySelectorAll("[data-favdel]").forEach(b=>b.onclick=async()=>{S.favs=S.favs.filter(x=>x.id!==b.dataset.favdel);await saveFavs();render();});
-  const pb=$("#packBtn");if(pb)pb.onclick=()=>{sg.pack=packTrip(sg.packDays);render();};
+  const pb=$("#packBtn");if(pb)pb.onclick=()=>{sg.pack=packTrip(sg.packDays,sg.packOuter??1);render();};
   v.querySelectorAll("[data-sg]").forEach(c=>c.onchange=()=>{sg[c.dataset.sg]=c.checked;});
   v.querySelectorAll("[data-unlock]").forEach(e=>e.onclick=()=>{sg.locks=(sg.locks||[]).filter(x=>x!==e.dataset.unlock);render();});
   const pl=$("#pickLocks");if(pl)pl.onclick=()=>openLockPicker(anchorOpts);
   const ua=$("#unlockAll");if(ua)ua.onclick=()=>{sg.locks=[];render();};
   v.querySelectorAll("[data-rlock]").forEach(e=>e.onclick=()=>{const id=e.dataset.rlock;sg.locks=sg.locks||[];sg.locks=sg.locks.includes(id)?sg.locks.filter(x=>x!==id):[...sg.locks,id];render();});
-  const gb=$("#gen");if(gb)gb.onclick=()=>{sg.result=generate();sg.condOpen=false;render();window.scrollTo(0,0);};
+  const gb=$("#gen");if(gb)gb.onclick=()=>{sg.result=generate();sg.condOpen=false;render();scrollTop0();};
   const ag=$("#again");if(ag)ag.onclick=()=>{sg.result=generate();render();};
   const w=$("#wore");if(w)w.onclick=async()=>{const ids=Object.values(sg.result.outfit).map(i=>i.id);w.disabled=true;await learn(sg.result.outfit,0.5);await recordWear(ids);sg.result=null;render();toast("着用を記録した");};
 }
