@@ -413,7 +413,7 @@ function showOnboarding(){let i=0;const ov=document.createElement("div");ov.clas
 const HELP={
  want:`<h2>欲しい服</h2><div class="guide" style="margin-top:6px"><ol><li>気になる服を「欲しいものを追加」で入れる（写真・価格・優先度）</li><li>手持ちと何通り組めるか、価格、優先度から、<b>先に買うとよい順</b>に並ぶ</li><li>予算を入れると、予算内で買える範囲に線が引かれる</li><li>買ったら「買った」で手持ちに移す</li></ol></div>`,
  closet:`<h2>クローゼット（一覧）</h2><div class="guide" style="margin-top:6px"><ol><li>右下「＋ 服を登録」→ 写真 → 枠で切り抜き → 属性を選んで保存</li><li>服をタップすると詳細。「今日これを着た」「洗濯中にする」「編集」ができる</li><li>「まとめて登録」：写真を何枚も選んで一度に登録。属性はあとで入れる</li><li>「買う前チェック」：気になる服が手持ちと何通り組めるかを数える</li></ol></div>`,
- suggest:`<h2>コーデを組む</h2><div class="guide" style="margin-top:6px"><ol><li>開くと、もうコーデが出ている。気に入らなければ「引き直す」、着るなら「これを着た」</li><li>服の名前を押して🔒を付けると、その服を残して残りだけ引き直せる</li><li>季節・系統・差し色、アウターや帽子の「なし／おまかせ／必ず」は結果の下の「条件」で選ぶ</li><li>一番上の切り替えで「ルール／ランダム／旅行」。旅行は日数を選んで持ち物を出す</li></ol></div>`,
+ suggest:`<h2>コーデを組む</h2><div class="guide" style="margin-top:6px"><ol><li>開くと、もうコーデが出ている。気に入らなければ「引き直す」、着るなら「これを着た」</li><li>服の名前を押して🔒を付けると、その服を残して残りだけ引き直せる</li><li>季節・系統・差し色、アウターや帽子の「なし／おまかせ／必ず」は結果の下の「条件」で選ぶ</li><li>一番上の切り替えで「コーデ／旅行」。ランダムにしたいときは条件の「ルール：使わない」</li></ol></div>`,
  log:`<h2>クローゼット（ふり返り）</h2><div class="guide" style="margin-top:6px"><ol><li><b>あなたの傾向</b>：いいねや着用から分かった好み</li><li><b>着回し力ランキング</b>：手持ちと何通り組めるか</li><li><b>眠っている服・手放し候補</b>：しばらく着ていない服</li><li><b>着用の履歴</b>：「これを着た」の記録</li></ol></div>`,
  sell:`<h2>出品</h2><div class="guide" style="margin-top:6px"><ol><li>「手放し候補」や「＋ 服を選んで出品」から服を選ぶ</li><li>出品文をコピーしてフリマアプリに貼り、「売れた値段を見る」で相場を確かめる</li><li>出品したら価格を入れて「出品した」。出品中の服はコーデから外れる</li><li>売れたら出品中の服を押して「売れたとして記録」。手取りを自動で計算する</li><li>30日売れない服には「値下げどき」と出る</li></ol></div>`,
  rules:`<h2>設定タブ</h2><div class="guide" style="margin-top:6px"><ol><li>ベーシック色と差し色の上限を決める</li><li>組み合わせのルールをオン・オフする</li><li>好みの学習をリセットできる</li><li><b>バックアップ</b>：機種変更の前に「書き出す」で保存しておく</li><li>「使い方をもう一度見る」で最初の案内が出る</li></ol></div>`};
@@ -448,7 +448,7 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-clearsample]"))
   if(e.target.closest("[data-addown]"))guardOwn(addMenu);});
 
 /* ===== 描画 ===== */
-const BUILD="v40";
+const BUILD="v41";
 const scrollTop0=()=>{const m=document.querySelector("main");if(m)m.scrollTop=0;};
 function render(){
   const all=Object.values(S.items).filter(i=>!isSold(i));
@@ -1310,9 +1310,10 @@ function renderSuggest(all){
   const inc=sg.inc||(sg.inc={outer:"auto",hat:"auto",scarf:"auto",belt:"auto"});
   const INCL={outer:"アウター",hat:"帽子",scarf:"マフラー",belt:"ベルト"},MODEL={none:"なし",auto:"おまかせ",must:"必ず"};
   const condSum=[sg.season,(sg.tastes||[]).length?sg.tastes.join("・"):"",sg.mode==="rule"&&sg.accPos?"差し色"+sg.accPos:"",...Object.keys(INCL).filter(k=>inc[k]==="must").map(k=>INCL[k]+"必ず"),sg.layer?"レイヤード":"",sg.noRough?"ラフ外す":"",(sg.locks||[]).length?"🔒"+sg.locks.length+"着":""].filter(Boolean).join("・");
-  const modeSel=sg.trip?"旅行":sg.mode==="rule"?"ルール":"ランダム";
+  const modeSel=sg.trip?"旅行":"コーデ";
   const cond=`<details class="cond" id="cond" ${sg.condOpen!==false?"open":""}><summary><b>条件</b><span class="sum">${esc(condSum)}</span><span class="tgl"></span></summary><div>
-      <label class="f" style="margin-top:0">季節</label>${chipGroup("season",SEASONS,sg.season)}
+      ${sg.trip?"":`<div class="incg" style="margin:0 0 4px"><span class="incl">ルール</span><div class="seg sm" data-rmode>${[["rule","使う"],["random","使わない（ランダム）"]].map(([m,l])=>`<span data-m="${m}" class="${sg.mode===m?"on":""}">${l}</span>`).join("")}</div></div>`}
+      <label class="f" style="margin-top:${sg.trip?0:10}px">季節</label>${chipGroup("season",SEASONS,sg.season)}
       <label class="f">系統（複数可・選ばなければ全部）</label>${chipGroup("tastes",TASTES.filter(t=>t!=="どれでも"),sg.tastes||[],true)}
       ${sg.mode==="rule"?`<label class="f">差し色</label>${chipGroup("accPos",["おまかせ","上に","下に"],sg.accPos==="上"?"上に":sg.accPos==="下"?"下に":"おまかせ")}`:""}
       ${sg.mode==="rule"&&S.borrowed.length?`<label class="f">だれのルールで組むか</label>${chipGroup("owner",["自分",...S.borrowed.map(b=>b.name+"さん")],sg.owner?(S.borrowed.find(b=>b.id===sg.owner)||{name:""}).name+"さん":"自分")}`:""}
@@ -1333,13 +1334,14 @@ function renderSuggest(all){
       <button class="btn" id="packBtn" style="width:100%;margin-top:12px">持ち物を出す</button>
       <div id="packRes">${sg.pack?packHTML(sg.pack):""}</div></div>`;
   $("#v-suggest").innerHTML=`${sampleBar()}
-    <div class="seg" data-seg="mode" style="margin-bottom:12px">${["ルール","ランダム","旅行"].map(m=>`<span data-m="${m}" class="${m===modeSel?"on":""}">${m}</span>`).join("")}</div>
+    <div class="seg" data-seg="mode" style="margin-bottom:12px">${["コーデ","旅行"].map(m=>`<span data-m="${m}" class="${m===modeSel?"on":""}">${m}</span>`).join("")}</div>
     ${sg.trip?trip+cond:res+cond}
     <div class="card"><h3>お気に入りコーデ</h3>${S.favs.length?S.favs.map(f=>{const its=ORDER.map(k=>f.slots[k]&&S.items[f.slots[k]]).filter(Boolean);
       return `<div class="logE"><div style="display:flex;gap:4px;flex:1;flex-wrap:wrap">${its.map(i=>`<div class="th">${imgSrc(i)?`<img src="${esc(imgSrc(i))}">`:""}</div>`).join("")}</div>
         <button class="btn sec" data-favshow="${f.id}" style="padding:6px 10px;font-size:12px">表示</button><button class="btn sec" data-favdel="${f.id}" style="padding:6px 10px;font-size:12px">削除</button></div>`;}).join(""):`<div class="muted">提案で「☆ 保存」を押すとここに残る</div>`}</div>`;
   const v=$("#v-suggest");
-  v.querySelectorAll("[data-seg=mode] span").forEach(e=>e.onclick=()=>{const m=e.dataset.m;if(m===modeSel)return;sg.trip=m==="旅行";if(!sg.trip){sg.mode=m==="ランダム"?"random":"rule";sg.result=null;}else sg.mode="rule";render();});
+  v.querySelectorAll("[data-seg=mode] span").forEach(e=>e.onclick=()=>{const m=e.dataset.m;if(m===modeSel)return;sg.trip=m==="旅行";render();});
+  v.querySelectorAll("[data-rmode] span").forEach(e=>e.onclick=()=>{const m=e.dataset.m;if(m===sg.mode)return;sg.mode=m;pushResult(generate());render();});
   const cd=$("#cond");if(cd)cd.ontoggle=()=>{sg.condOpen=cd.open;};
   bindChips(v,g=>{
     if(g==="season"){sg.season=readGroup(v,"season")||curSeason();}
