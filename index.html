@@ -242,10 +242,22 @@ async function saveFavs(){try{await idbPut("meta","favs",S.favs);}catch(e){err()
 async function saveLog(){try{await idbPut("meta","log",S.log.slice(0,300));}catch(e){err();}}
 async function savePhoto(blob){const key="p_"+rid();await idbPut("photos",key,blob);PHOTO_URL[key]=URL.createObjectURL(blob);return key;}
 
+const FORM_URL="https://forms.gle/D2ozkeaQUoW6H5YM6";
+async function saveFb(){try{await idbPut("meta","fb",S.fb);}catch(e){}}
+function askFeedback(){S.fb.asked=true;saveFb();
+  const o=openSheet(`<h2 style="margin:4px 0 6px">使ってみてどう？</h2><p class="muted" style="margin:0 0 14px">よかったところ、使いにくかったところを教えてください。1分ほどで答えられます。名前や服のデータは送られません。</p>
+    <a class="btn acc" href="${FORM_URL}" target="_blank" rel="noopener" id="fbGo" style="display:block;text-align:center;text-decoration:none;padding:13px">感想を送る</a>
+    <button class="btn sec" id="fbLater" style="width:100%;margin-top:8px">今はいい</button>
+    <p class="muted" style="margin:10px 0 0;font-size:12px">この案内は1回だけ。あとからでも「設定」の「感想を送る」から送れます。</p>`);
+  o.querySelector("#fbGo").onclick=()=>{S.fb.sent=true;saveFb();setTimeout(()=>o.remove(),300);};
+  o.querySelector("#fbLater").onclick=()=>o.remove();}
+function fbTick(){if(!S.fb)return;S.fb.gen=(S.fb.gen||0)+1;if(!S.fb.first)S.fb.first=today();
+  const days=daysBetween(S.fb.first,today())||0;if(!S.fb.asked&&(S.fb.gen>=10||(days>=7&&S.fb.gen>=3))){S.fb.asked=true;saveFb();setTimeout(askFeedback,1200);}else if(S.fb.gen%5===0)saveFb();}
 async function init(){
   render();
   try{DB=await idbOpen();}catch(e){banner("このブラウザでは保存が使えません。プライベートブラウズを解除して開き直してください。");return;}
-  const [items,photos,rules,log,pref,favs,wants,borrowed]=await Promise.all([idbAll("items"),idbAll("photos"),idbGet("meta","rules"),idbGet("meta","log"),idbGet("meta","pref"),idbGet("meta","favs"),idbGet("meta","wants"),idbGet("meta","borrowed")]);
+  const [items,photos,rules,log,pref,favs,wants,borrowed,fb]=await Promise.all([idbAll("items"),idbAll("photos"),idbGet("meta","rules"),idbGet("meta","log"),idbGet("meta","pref"),idbGet("meta","favs"),idbGet("meta","wants"),idbGet("meta","borrowed"),idbGet("meta","fb")]);
+  S.fb=(fb&&typeof fb==="object")?fb:{gen:0,first:"",asked:false};
   S.wants=Array.isArray(wants)?wants:[];S.borrowed=Array.isArray(borrowed)?borrowed:[];
   S.pref=(pref&&typeof pref==="object"&&!Array.isArray(pref))?pref:{};S.favs=Array.isArray(favs)?favs:[];
   for(const k in photos)PHOTO_URL[k]=URL.createObjectURL(photos[k]);
@@ -448,7 +460,7 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-clearsample]"))
   if(e.target.closest("[data-addown]"))guardOwn(addMenu);});
 
 /* ===== 描画 ===== */
-const BUILD="v41";
+const BUILD="v42";
 const scrollTop0=()=>{const m=document.querySelector("main");if(m)m.scrollTop=0;};
 function render(){
   const all=Object.values(S.items).filter(i=>!isSold(i));
@@ -1171,7 +1183,7 @@ function outfitFeatures(o){const f=[];const t=o["トップス"],b=o["ボトム�
 function prefScore(o){return outfitFeatures(o).reduce((a,k)=>a+(S.pref[k]||0),0);}
 async function learn(o,d){outfitFeatures(o).forEach(k=>{S.pref[k]=Math.round(((S.pref[k]||0)+d)*10)/10;});await savePref();}
 function pushResult(r){const sg=S.sug;if(sg.result&&sg.result.outfit)sg.hist=[...(sg.hist||[]),sg.result].slice(-15);sg.result=r;}
-function generate(){const r=generate0();if(r&&r.outfit){const lk=S.sug.locks||[];S._shown=[...(S._shown||[]),Object.values(r.outfit).map(i=>i.id).filter(id=>!lk.includes(id))].slice(-3);}return r;}
+function generate(){const r=generate0();if(r&&r.outfit&&!S._noFb)fbTick();if(r&&r.outfit){const lk=S.sug.locks||[];S._shown=[...(S._shown||[]),Object.values(r.outfit).map(i=>i.id).filter(id=>!lk.includes(id))].slice(-3);}return r;}
 function generate0(){const sg=S.sug;const b=sg.mode==="rule"&&sg.owner&&S.borrowed.find(x=>x.id===sg.owner);
   if(!b)return generateInner();const R0=S.rules,P0=S.pref;S.rules={...DEFAULT_RULES,...b.rules};S.pref=b.pref||{};
   try{const r=generateInner();if(r&&r.outfit)r.notes=[...(r.notes||[]),`${b.name}さんのルールで組んだ`];return r;}finally{S.rules=R0;S.pref=P0;}}
@@ -1484,6 +1496,7 @@ function renderRules(){
     <div class="card"><h3>ルールの共有</h3><p class="muted" style="margin:0 0 8px">自分の組み合わせルールと好みをリンクにして友達に渡せる。受け取った人は、あなたの目線で自分の服を組める。服や写真は渡らない。</p>
       <div class="row"><button class="btn sec" id="shareR" style="flex:1">自分のルールを共有する</button><button class="btn sec" id="pasteR" style="flex:1">コードを貼り付ける</button></div>
       ${S.borrowed.length?`<div style="margin-top:10px">${S.borrowed.map(b=>`<div class="row" style="justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(b.name)}さんのルール<span class="muted">（${esc(ruleSummary(b.rules))}）</span></span><button class="btn sec" data-delb="${b.id}" style="padding:5px 10px;font-size:12px">削除</button></div>`).join("")}<p class="muted">コーデ提案で「だれのルールで組むか」から選べる</p></div>`:""}</div>
+    <div class="card"><h3>感想を送る</h3><p class="muted" style="margin:0 0 8px">よかったところ、使いにくかったところを作った人に送れる（Googleフォーム・1分ほど）。名前や服のデータは送られない</p><a class="btn acc" href="${FORM_URL}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">感想を送る</a></div>
     <div class="card"><h3>使い方</h3><div class="row"><button class="btn sec" id="obAgain" style="flex:1">使い方をもう一度見る</button><a class="btn sec" href="guide.html" style="flex:1;text-align:center;text-decoration:none">使い方ガイド（全部・PDF保存可）</a>
       ${Object.values(S.items).some(i=>i.sample)?`<button class="btn sec" data-clearsample style="flex:1">お試しデータを消す</button><button class="btn sec" data-fixsample style="flex:1">お試しの写真を読み直す</button>`:`<button class="btn sec" data-loadsample style="flex:1">お試しデータを入れる</button>`}</div><div class="muted" style="margin-top:8px;font-size:12px">アプリの版：${BUILD}</div></div>
     <div class="card"><h3>好みの学習</h3><p class="muted" style="margin:0 0 8px">「いいね／いまいち」「これを着た」から、好きな組み合わせを覚えて提案に反映している。</p><button class="btn sec" id="resetPref">学習をリセット</button></div>
